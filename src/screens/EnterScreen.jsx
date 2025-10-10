@@ -1,0 +1,122 @@
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  Image,
+} from "react-native";
+import CustomInput from "../components/CustomInput";
+import CustomButton from "../components/CustomButton";
+import Colors from "../contants/Colors";
+import bluevector from "../../assets/blueVector.png";
+import backgroundLogo from "../../assets/Vectorbg.png";
+import backgroundImg from "../../assets/Vectorbg.png";
+
+const EnterScreen = ({ navigation }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill all fields!");
+      return;
+    }
+    console.log("Email:", email, "Password:", password);
+    Alert.alert("Success", "Login successful!");
+    navigation.replace("Dashboard");
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Background Images */}
+      <Image source={backgroundLogo} style={styles.backgroundTop} />
+
+      {/* Main Content */}
+      <Image source={bluevector} style={styles.logo} />
+
+      <Text style={styles.title}>SportSynz</Text>
+
+      <Text style={styles.inputLabel}>Enter ID</Text>
+      <CustomInput value={email} onChangeText={setEmail} />
+
+      <CustomButton
+        title="Log In"
+        onPress={() => {
+          navigation.navigate("LoginPage");
+          console.log("Loginsd  sdfsdfs");
+        }}
+      />
+      <CustomButton
+        title="Sign Up"
+        onPress={() => {
+          navigation.navigate("SignUp");
+          console.log("Loginsd  sdfsdfs fsdfsdfsdfsdf");
+        }}
+      />
+      <View style={styles.input}></View>
+      <Image source={backgroundImg} style={styles.backgroundBottom} />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  backgroundTop: {
+    position: "absolute",
+    top: -250,
+    left: 210,
+    width: "50%",
+    height: "100%",
+    resizeMode: "contain",
+    zIndex: 1,
+    opacity: 1,
+  },
+  backgroundBottom: {
+    position: "absolute",
+    top: 280,
+    left: 0,
+    width: "50%",
+    height: "100%",
+    resizeMode: "contain",
+    transform: [{ rotate: "176deg" }],
+    zIndex: 1,
+    opacity: 1,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    padding: 20,
+    justifyContent: "center",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "700",
+    textAlign: "center",
+    color: Colors.text,
+    marginBottom: 25,
+  },
+  inputLabel: {
+    color: "#414141",
+    fontSize: 12,
+    fontWeight: "400",
+    marginTop: 10,
+    marginBottom: 5,
+  },
+  input: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 20,
+    justifyContent: "center",
+    marginTop: 20,
+    width: "100%",
+  },
+  logo: {
+    resizeMode: "contain",
+    alignSelf: "center",
+    marginBottom: 20,
+    zIndex: 1,
+  },
+});
+
+export default EnterScreen;
