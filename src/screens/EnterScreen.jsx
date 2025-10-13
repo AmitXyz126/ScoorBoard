@@ -3,12 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
-  Alert,
+   Alert,
   Image,
 } from "react-native";
 import CustomInput from "../components/CustomInput";
-import CustomButton from "../components/CustomButton";
+import GradientButton from "../gradientButton/GradientButton";
 import Colors from "../contants/Colors";
 import bluevector from "../../assets/blueVector.png";
 import backgroundLogo from "../../assets/Vectorbg.png";
@@ -32,6 +31,7 @@ const EnterScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Background Images */}
       <Image source={backgroundLogo} style={styles.backgroundTop} />
+      <Image source={backgroundImg} style={styles.backgroundBottom} />
 
       {/* Main Content */}
       <Image source={bluevector} style={styles.logo} />
@@ -41,27 +41,36 @@ const EnterScreen = ({ navigation }) => {
       <Text style={styles.inputLabel}>Enter ID</Text>
       <CustomInput value={email} onChangeText={setEmail} />
 
-      <CustomButton
-        title="Log In"
-        onPress={() => {
-          navigation.navigate("LoginPage");
-          console.log("Loginsd  sdfsdfs");
-        }}
-      />
-      <CustomButton
-        title="Sign Up"
-        onPress={() => {
-          navigation.navigate("SignUp");
-          console.log("Loginsd  sdfsdfs fsdfsdfsdfsdf");
-        }}
-      />
-      <View style={styles.input}></View>
-      <Image source={backgroundImg} style={styles.backgroundBottom} />
+      {/* Buttons in horizontal row */}
+      <View style={styles.buttonRow}>
+        <GradientButton
+          title="Log In"
+          onPress={() => {
+            navigation.navigate("LoginPage");
+            console.log("Login pressed");
+          }}
+          style={[styles.button, { flex: 1, marginRight: 10 }]}
+        />
+        <GradientButton
+          title="Sign Up"
+          onPress={() => {
+            navigation.navigate("SignUp");
+            console.log("Sign Up pressed");
+          }}
+          style={[styles.button, { flex: 1, marginLeft: 10 }]}
+        />
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    padding: 20,
+    justifyContent: "center",
+  },
   backgroundTop: {
     position: "absolute",
     top: -250,
@@ -83,11 +92,11 @@ const styles = StyleSheet.create({
     zIndex: 1,
     opacity: 1,
   },
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    padding: 20,
-    justifyContent: "center",
+  logo: {
+    resizeMode: "contain",
+    alignSelf: "center",
+    marginBottom: 20,
+    zIndex: 1,
   },
   title: {
     fontSize: 24,
@@ -103,19 +112,15 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 5,
   },
-  input: {
+  buttonRow: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 20,
     justifyContent: "center",
     marginTop: 20,
-    width: "100%",
   },
-  logo: {
-    resizeMode: "contain",
-    alignSelf: "center",
-    marginBottom: 20,
-    zIndex: 1,
+  button: {
+    flex: 0,
+    height: 48,
+    borderRadius: 10,
   },
 });
 
