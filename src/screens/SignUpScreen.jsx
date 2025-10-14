@@ -93,7 +93,6 @@ const SignUpScreen = ({ navigation }) => {
           <View style={styles.line} />
         </View>
 
-        {/* Google Button */}
         <TouchableOpacity style={styles.googleButton}>
           <Image source={GoogleIcon} style={styles.googleIcon} />
           <Text style={styles.googleText}>Continue with Google</Text>
@@ -102,7 +101,7 @@ const SignUpScreen = ({ navigation }) => {
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Already have an account?</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+          <TouchableOpacity onPress={() => navigation.navigate("LoginPage")}>
             <Text style={styles.link}> Login</Text>
           </TouchableOpacity>
         </View>
@@ -116,7 +115,7 @@ const SignUpScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   backgroundTop: {
     position: "absolute",
-    top: -250,
+    top: -231,
     left: 210,
     width: "50%",
     height: "100%",
@@ -188,17 +187,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 6,
+    borderColor: "#EFF0F7",
+    borderRadius: 10,
     height: 48,
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
+    backgroundColor: "#EFF0F7",
   },
-  googleIcon: { width: 20, height: 20, marginRight: 8 },
-  googleText: { fontSize: 15, fontWeight: "500", color: "#414141" },
+  googleIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 8,
+  },
+  googleText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#414141",
+  },
   footer: { flexDirection: "row", justifyContent: "center", marginTop: 15 },
   footerText: { color: Colors.gray },
   link: { color: Colors.primary, fontWeight: "600" },

@@ -16,9 +16,19 @@ import bluevector from "../../assets/blueVector.png";
 import backgroundLogo from "../../assets/Vectorbg.png";
 import backgroundImg from "../../assets/Vectorbg.png";
 
-const EnterScreen = ({ navigation }) => {
+const ViewLogin = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const handleLogin = () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill all fields!");
+      return;
+    }
+    console.log("Email:", email, "Password:", password);
+    Alert.alert("Success", "Login successful!");
+    navigation.replace("Dashboard");
+  };
 
   return (
     <KeyboardAvoidingView
@@ -33,31 +43,18 @@ const EnterScreen = ({ navigation }) => {
           <Image source={backgroundLogo} style={styles.backgroundTop} />
           <Image source={backgroundImg} style={styles.backgroundBottom} />
         </View>
-
         <Image source={bluevector} style={styles.logo} />
-
         <Text style={styles.title}>SportSynz</Text>
-
-        <Text style={styles.inputLabel}>Enter ID</Text>
+        <Text style={styles.inputLabel}>Email Address</Text>
         <CustomInput value={email} onChangeText={setEmail} />
-
-        {/* Buttons row */}
-        <View style={styles.buttonRow}>
-          <GradientButton
-            title="Log In"
-            onPress={() => {
-              navigation.navigate("LoginPage");
-              console.log("Login pressed");
-            }}
-            style={[styles.button, { flex: 1, marginRight: 10 }]}
-          />
-          <GradientButton
-            title="Sign Up"
-            onPress={() => navigation.navigate("SignUp")}
-            style={{ flex: 1, marginLeft: 10 }}
-            type="secondary"
-          />
-        </View>
+        <Text style={styles.inputLabel}>Match ID</Text>
+        <CustomInput value={email} onChangeText={setEmail} />
+        <GradientButton
+          onPress={() => navigation.navigate("FinalScoor")}
+          title="Go to Home"
+          style={styles.secondLast}
+        />
+        onPress={() => alert("Match Over!")}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -121,6 +118,9 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 10,
   },
+  secondLast: {
+    marginTop: 32,
+  },
 });
 
-export default EnterScreen;
+export default ViewLogin;

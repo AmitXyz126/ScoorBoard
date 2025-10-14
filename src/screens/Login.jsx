@@ -29,7 +29,7 @@ const Login = ({ navigation }) => {
       return;
     }
     Alert.alert("Success", "Login successful!");
-    navigation.replace("SelectSport"); // ✅ FIXED: Opens SelectSportScreen after login
+    navigation.replace("SelectSport"); 
   };
 
   return (
@@ -117,6 +117,7 @@ const Login = ({ navigation }) => {
             <Text style={styles.footerText}>Don’t have an account?</Text>
             <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
               <Text style={styles.link}> Sign Up</Text>
+              
             </TouchableOpacity>
           </View>
         </View>
@@ -138,7 +139,7 @@ const styles = StyleSheet.create({
   },
   backgroundImage: {
     position: "absolute",
-    top: -269,
+    top: -240,
     left: 214,
     width: "49%",
     height: "100%",

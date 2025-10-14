@@ -12,7 +12,12 @@ const SelectMatchScreen = ({ navigation }) => {
       return;
     }
 
-    navigation.replace("HomeScreen");
+ 
+    if (selectedType === "single") {
+      navigation.navigate("SingleMatchScreen");
+    } else if (selectedType === "tournament") {
+      navigation.navigate("TournamentScreen");
+    }
   };
 
   return (
@@ -21,11 +26,11 @@ const SelectMatchScreen = ({ navigation }) => {
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
-        {/*  Back arrow */}
+        {/* Back arrow */}
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
 
-      {/*  Progress */}
+      {/* Progress */}
       <View style={styles.progressContainer}>
         <View style={styles.progressActive} />
         <View style={styles.progressActive} />
@@ -81,7 +86,7 @@ const styles = StyleSheet.create({
   progressContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginBottom: 30,
+    marginBottom: 24,
     marginTop: 50,
   },
   progressActive: {
@@ -96,14 +101,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: Colors.text,
     textAlign: "center",
-    marginBottom: 40,
+    marginBottom: 16,
   },
   optionsContainer: {
     alignItems: "center",
   },
   optionCard: {
-    width: "85%",
-    paddingVertical: 25,
+    width: "95%",
+    paddingVertical: 40,
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 12,
@@ -120,7 +125,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "600",
     color: "#000",
-    paddingHorizontal:20,
+    paddingHorizontal: 20,
   },
   footer: {
     marginTop: 250,

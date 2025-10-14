@@ -51,7 +51,7 @@ export default function CustomInput({
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    marginVertical: 10,
+    marginVertical: 5,
   },
   label: {
     fontSize: 14,

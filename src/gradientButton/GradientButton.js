@@ -1,36 +1,82 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import MaskedView from "@react-native-masked-view/masked-view";
+import Colors from "../contants/Colors";
 
-const GradientButton = ({ title, onPress, style }) => {
+const GradientButton = ({ title, onPress, style, type = "primary" }) => {
+  if (type === "primary") {
+    return (
+      <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={[style]}>
+        <LinearGradient
+          colors={["#068EFF", "#0C559E"]}
+          start={{ x: 1, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradient}
+        >
+          <Text style={styles.primaryText}>{title}</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  }
+
+  // Secondary Button with Gradient Text
   return (
-    <TouchableOpacity onPress={onPress} style={[styles.button, style]}>
-      <LinearGradient
-        colors={["#068EFF", "#0C559E"]}
-        style={styles.gradient}
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      style={[styles.secondaryButton, style]}
+    >
+      <MaskedView
+        maskElement={
+          <Text style={[styles.secondaryText, { textAlign: "center" }]}>
+            {title}
+          </Text>
+        }
       >
-        <Text style={styles.text}>{title}</Text>
-      </LinearGradient>
+        <LinearGradient
+          colors={["#068EFF", "#0C559E"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <Text style={[styles.secondaryText, { opacity: 0 }]}>{title}</Text>
+        </LinearGradient>
+      </MaskedView>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  button: {
-    flex: 0,  
+  gradient: {
     height: 48,
     borderRadius: 10,
-  },
-  gradient: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 10,
+    shadowColor: "#068EFF",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  text: {
+  primaryText: {
     color: "#fff",
     fontWeight: "700",
     fontSize: 16,
+    textTransform: "capitalize",
+  },
+  secondaryButton: {
+    height: 48,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#0091FF",  
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "transparent",
+  },
+  secondaryText: {
+    fontWeight: "700",
+    fontSize: 16,
+    textTransform: "capitalize",
   },
 });
 
