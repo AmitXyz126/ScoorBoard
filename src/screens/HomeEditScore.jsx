@@ -8,6 +8,7 @@ import person from "../../assets/person.png";
 import meet from "../../assets/meet.png";
 import shareicon from "../../assets/shareIcon.png";
 import GradientText from "../gradientText/GradientText";
+import copy from "../../assets/copy.png";
 
 const HomeEditScore = ({ navigation }) => {
   const [homeScore, setHomeScore] = useState(0);
@@ -30,7 +31,10 @@ const HomeEditScore = ({ navigation }) => {
       <View style={styles.header}>
         <View>
           <Text style={styles.matchTitle}>Match ID</Text>
-          <Text style={styles.matchId}>1234 1234 1234</Text>
+          <View style={styles.copyContainer}>
+            <Text style={styles.matchId}>1234 1234 1234</Text>
+            <Image source={copy} style={styles.copy}></Image>
+          </View>
         </View>
         <TouchableOpacity onPress={() => navigation.navigate("ViewLogin")}>
           <Image style={styles.share} source={shareicon} />
@@ -126,11 +130,10 @@ const styles = StyleSheet.create({
   },
 
   share: {
-    backgroundColor: "#068EFF1F",
     borderRadius: 4,
     padding: 5,
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
   },
   topBar: {
     width: "90%",
@@ -148,6 +151,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+  },
+  copyContainer: {
+    flexDirection: "row",
+  },
+  copy: {
+    width: 20,
+    height: 20,
+    marginLeft: 1,
   },
   header: {
     width: "90%",
@@ -214,7 +225,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: "#fff",
-    borderRadius: 12,
+    borderRadius: 5,
     paddingVertical: 2,
     shadowColor: "#000",
     shadowOpacity: 0.1,

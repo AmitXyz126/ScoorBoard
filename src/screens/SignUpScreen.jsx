@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useForm, Controller } from "react-hook-form";
 import CustomInput from "../components/CustomInput";
 import GradientButton from "../gradientButton/GradientButton";
 import Colors from "../contants/Colors";
@@ -17,21 +18,40 @@ import blueImg from "../../assets/blueVector.png";
 import GoogleIcon from "../../assets/googleIcon.png";
 import backgroundLogo from "../../assets/Vectorbg.png";
 import backgroundImg from "../../assets/Vectorbg.png";
+import { registerUser, checkEmailExists } from "../api/auth";
 
 const SignUpScreen = ({ navigation }) => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      username: "",
+      fullName: "",
+      email: "",
+      password: "",
+      phoneNumber: "",
+    },
+    mode: "onChange",
+  });
 
-  const handleSignUp = () => {
-    if (!name || !email || !password || !phone) {
-      Alert.alert("Error", "Please fill all fields!");
-      return;
+  const onSubmit = async (data) => {
+    try {
+      const res = await registerUser({
+        username: data.email,
+        fullName: data.name,
+        email: data.email,
+        password: data.password,
+        phoneNumber: data.phone,
+      });
+      console.log("Signup Success:", res);
+      Alert.alert("Success", "Account created successfully!");
+      navigation.replace("LoginPage");
+    } catch (error) {
+      console.log("Signup Error:", error);
+      Alert.alert("Error", error.message || "Signup failed!");
     }
-
-    Alert.alert("Success", "Account created successfully!");
-    navigation.replace("Login");
   };
 
   return (
@@ -43,7 +63,6 @@ const SignUpScreen = ({ navigation }) => {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Backgrounds */}
         <Image source={backgroundLogo} style={styles.backgroundTop} />
         <Image source={blueImg} style={styles.logo} />
 
@@ -51,38 +70,99 @@ const SignUpScreen = ({ navigation }) => {
         <Text style={styles.heading}>Sign Up</Text>
 
         {/* Full Name */}
-        <Text style={styles.inputLabel}>Full Name</Text>
-        <CustomInput value={name} onChangeText={setName} />
+        <Controller
+          control={control}
+          name="name"
+          rules={{ required: "Full name is required" }}
+          render={({ field: { onChange, value } }) => (
+            <CustomInput
+              label="Full Name"
+              value={value}
+              onChangeText={onChange}
+            />
+          )}
+        />
+        {errors.name && (
+          <Text style={styles.errorText}>{errors.name.message}</Text>
+        )}
 
         {/* Email */}
-        <Text style={styles.inputLabel}>Email</Text>
-        <CustomInput
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
+        <Controller
+          control={control}
+          name="email"
+          rules={{
+            required: "Email is required",
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: "Invalid email address",
+            },
+            validate: async (value) => {
+              try {
+                const exists = await checkEmailExists(value);
+                return exists.exists ? "Email already exists" : true;
+              } catch (err) {
+                return "Unable to verify email";
+              }
+            },
+          }}
+          render={({ field }) => (
+            <CustomInput
+              label="Email"
+              value={field.value}
+              onChangeText={field.onChange}
+              onBlur={field.onBlur} 
+              keyboardType="email-address"
+            />
+          )}
         />
+        {errors.email && (
+          <Text style={styles.errorText}>{errors.email.message}</Text>
+        )}
 
-        {/* Phone Number (Simple Input) */}
-        <Text style={styles.inputLabel}>Phone Number</Text>
-        <CustomInput
-          value={phone}
-          onChangeText={setPhone}
-          keyboardType="phone-pad"
+        {/* Phone */}
+        <Controller
+          control={control}
+          name="phone"
+          rules={{ required: "Phone number is required" }}
+          render={({ field: { onChange, value } }) => (
+            <CustomInput
+              label="Phone Number"
+              value={value}
+              onChangeText={onChange}
+              keyboardType="phone-pad"
+            />
+          )}
         />
+        {errors.phone && (
+          <Text style={styles.errorText}>{errors.phone.message}</Text>
+        )}
 
         {/* Password */}
-        <Text style={styles.inputLabel}>Set Password</Text>
-        <CustomInput
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={true}
-          showPasswordToggle={true}
+        <Controller
+          control={control}
+          name="password"
+          rules={{
+            required: "Password is required",
+            minLength: { value: 4, message: "Min 4 characters" },
+          }}
+          render={({ field: { onChange, value } }) => (
+            <CustomInput
+              label="Set Password"
+              value={value}
+              onChangeText={onChange}
+              secureTextEntry
+              showPasswordToggle
+            />
+          )}
         />
+        {errors.password && (
+          <Text style={styles.errorText}>{errors.password.message}</Text>
+        )}
 
         {/* Sign Up Button */}
         <GradientButton
           title="Sign Up"
-          onPress={handleSignUp}
+          onPress={handleSubmit(onSubmit)}
           style={styles.signUpButton}
         />
 
@@ -93,6 +173,7 @@ const SignUpScreen = ({ navigation }) => {
           <View style={styles.line} />
         </View>
 
+        {/* Google Sign Up */}
         <TouchableOpacity style={styles.googleButton}>
           <Image source={GoogleIcon} style={styles.googleIcon} />
           <Text style={styles.googleText}>Continue with Google</Text>
@@ -101,7 +182,7 @@ const SignUpScreen = ({ navigation }) => {
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Already have an account?</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("LoginPage")}>
+          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
             <Text style={styles.link}> Login</Text>
           </TouchableOpacity>
         </View>
@@ -112,6 +193,7 @@ const SignUpScreen = ({ navigation }) => {
   );
 };
 
+// Styles remain same
 const styles = StyleSheet.create({
   backgroundTop: {
     position: "absolute",
@@ -140,10 +222,7 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: "center",
   },
-  logo: {
-    resizeMode: "contain",
-    alignSelf: "center",
-  },
+  logo: { resizeMode: "contain", alignSelf: "center" },
   title: {
     fontSize: 24,
     fontWeight: "700",
@@ -157,11 +236,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: Colors.text,
     marginBottom: 25,
-  },
-  inputLabel: {
-    marginBottom: 1,
-    fontWeight: "600",
-    color: Colors.text,
   },
   signUpButton: {
     height: 50,
@@ -192,19 +266,12 @@ const styles = StyleSheet.create({
     height: 48,
     backgroundColor: "#EFF0F7",
   },
-  googleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 8,
-  },
-  googleText: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#414141",
-  },
+  googleIcon: { width: 20, height: 20, marginRight: 8 },
+  googleText: { fontSize: 15, fontWeight: "500", color: "#414141" },
   footer: { flexDirection: "row", justifyContent: "center", marginTop: 15 },
   footerText: { color: Colors.gray },
   link: { color: Colors.primary, fontWeight: "600" },
+  errorText: { color: "red", fontSize: 12, marginBottom: 5, marginLeft: 5 },
 });
 
 export default SignUpScreen;

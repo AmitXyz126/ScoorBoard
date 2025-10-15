@@ -15,6 +15,7 @@ import Colors from "../contants/Colors";
 import GradientButton from "../gradientButton/GradientButton";
 import { BlurView } from "expo-blur";
 import CustomInput from "../components/CustomInput";
+import backIcon from "../../assets/backIcon.png";
 
 const AddTeamScreen = ({ navigation }) => {
   const [teamName, setTeamName] = useState("");
@@ -47,7 +48,8 @@ const AddTeamScreen = ({ navigation }) => {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color="black" />
+          <Image source={backIcon} style={styles.backArrow}></Image>
+          {/* <Ionicons name="arrow-back" size={24} color="black" /> */}
         </TouchableOpacity>
 
         <Text style={styles.title}>Add New Team</Text>
@@ -101,7 +103,9 @@ const AddTeamScreen = ({ navigation }) => {
                 style={styles.modalButton}
                 onPress={handleSelectTeam}
               >
-                <Text style={styles.modalButtonText}>Select team for match</Text>
+                <Text style={styles.modalButtonText}>
+                  Select team for match
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -123,6 +127,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 60,
     left: 20,
+  },
+
+  backArrow: {
+    width: 24,
+    height: 24,
   },
   title: {
     fontSize: 20,
@@ -164,7 +173,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalBox: {
-    width: "80%",
+    width: "90%",
     backgroundColor: "#fff",
     borderRadius: 16,
     alignItems: "center",
@@ -183,7 +192,7 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: "#0C559E",
     fontWeight: "600",
-    paddingHorizontal: 30,
+    paddingHorizontal: 50,
     paddingVertical: 5,
   },
 });

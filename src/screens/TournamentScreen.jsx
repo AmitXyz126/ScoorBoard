@@ -6,6 +6,9 @@ import GradientButton from "../gradientButton/GradientButton";
 import GradientText from "../gradientText/GradientText";
 import person from "../../assets/person.png";
 import meet from "../../assets/meet.png";
+import backIcon from "../../assets/backIcon.png";
+import plusIcon from "../../assets/plus.png";
+import downArrow from "../../assets/downArrow.png";
 
 const TournamentScreen = ({ navigation }) => {
   return (
@@ -14,7 +17,7 @@ const TournamentScreen = ({ navigation }) => {
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
-        <Ionicons name="arrow-back" size={24} color="black" />
+        <Image source={backIcon} style={styles.backIcon}></Image>
       </TouchableOpacity>
 
       <Text style={styles.title}>Tournament Select Teams</Text>
@@ -26,7 +29,8 @@ const TournamentScreen = ({ navigation }) => {
           <Text style={styles.teamName}>Chelsea</Text>
           <Text style={styles.teamSub}>Team A</Text>
         </View>
-        <Ionicons name="chevron-down" size={20} color="#555" />
+        {/* <Ionicons name="chevron-down" size={20} color="#555" /> */}
+        <Image source={downArrow} style={styles.downArrow}></Image>
       </View>
 
       <GradientText
@@ -47,7 +51,8 @@ const TournamentScreen = ({ navigation }) => {
           <Text style={styles.teamName}>Melon</Text>
           <Text style={styles.teamSub}>Team B</Text>
         </View>
-        <Ionicons name="chevron-down" size={20} color="#555" />
+        {/* <Ionicons name="chevron-down" size={20} color="#555" /> */}
+        <Image source={downArrow} style={styles.downArrow}></Image>
       </View>
 
       {/* Footer Buttons */}
@@ -62,8 +67,10 @@ const TournamentScreen = ({ navigation }) => {
           style={styles.newTeamButton}
           onPress={() => navigation.navigate("AddTeamScreen")}
         >
-          <Ionicons name="add" size={18} color={Colors.primary} />
-
+          <Image
+            source={plusIcon}
+            style={{ width: 18, height: 18, marginRight: 6 }}
+          />
           <Text style={styles.newTeamText}>New Team</Text>
         </TouchableOpacity>
       </View>
@@ -83,20 +90,25 @@ const styles = StyleSheet.create({
     top: 60,
     left: 20,
   },
+  backIcon: {
+    width: 24,
+    height: 24,
+  },
   title: {
     fontSize: 20,
     fontWeight: "700",
-    marginBottom: 40,
+    marginBottom: 16,
+    marginTop: 26,
   },
   teamBox: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#F7F7F7",
     width: "85%",
-    padding: 15,
+    padding: 24,
     borderRadius: 12,
-    marginBottom: 20,
-    marginTop:20,
+    marginBottom: 15,
+    marginTop: 15,
   },
   teamLogo: {
     width: 50,
@@ -136,6 +148,24 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: "600",
     marginLeft: 4,
+    fontSize: 16,
+  },
+  downArrow: {
+    width: 32,
+    height: 32,
+    borderRadius: 5,
+    backgroundColor: "#FFF",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 6,
+    flexShrink: 0,
+
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+
+    elevation: 4,
   },
 });
 

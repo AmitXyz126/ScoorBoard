@@ -1,15 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
-  Alert,
+  Animated,
   Image,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
+  Alert,
 } from "react-native";
 import { Checkbox } from "react-native-paper";
+import { useForm, Controller } from "react-hook-form";
 import CustomInput from "../components/CustomInput";
 import GradientButton from "../gradientButton/GradientButton";
 import Colors from "../contants/Colors";
@@ -17,19 +19,49 @@ import blueImg from "../../assets/blueVector.png";
 import GoogleIcon from "../../assets/googleIcon.png";
 import backgroundLogo from "../../assets/Vectorbg.png";
 import backgroundsecond from "../../assets/VectorSecond.png";
+import { loginUser } from "../api/auth";
 
 const Login = ({ navigation }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: { email: "", password: "" },
+  });
+
   const [rememberMe, setRememberMe] = useState(false);
 
-  const handleLogin = () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please fill all fields!");
-      return;
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+
+  useEffect(() => {
+    // Animate Login screen content on mount
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        friction: 6,
+        tension: 80,
+      }),
+    ]).start();
+  }, []);
+
+  const onSubmit = async (data) => {
+    const { email, password } = data;
+    try {
+      const res = await loginUser({ identifier: email, password });
+      Alert.alert("Success", "Login successful!");
+      navigation.replace("SelectSport");
+    } catch (error) {
+      Alert.alert("Error", error.message || "Login failed!");
     }
-    Alert.alert("Success", "Login successful!");
-    navigation.replace("SelectSport"); 
   };
 
   return (
@@ -38,7 +70,6 @@ const Login = ({ navigation }) => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.container}>
-        {/* Background Images */}
         <Image
           source={backgroundLogo}
           style={styles.backgroundImage}
@@ -50,8 +81,9 @@ const Login = ({ navigation }) => {
           pointerEvents="none"
         />
 
-        <View style={styles.content}>
-          {/* Logo and Headings */}
+        <Animated.View
+          style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
+        >
           <Image source={blueImg} style={styles.logo} />
           <Text style={styles.title}>SportSynz</Text>
           <Text style={styles.heading}>Get Started Now</Text>
@@ -60,23 +92,50 @@ const Login = ({ navigation }) => {
           </Text>
 
           {/* Email Input */}
-          <CustomInput
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
+          <Controller
+            control={control}
+            name="email"
+            rules={{
+              required: "Email is required",
+              pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              validate: (v) => v.endsWith("@gmail.com") || "Only Gmail allowed",
+            }}
+            render={({ field: { onChange, value } }) => (
+              <CustomInput
+                label="Email"
+                value={value}
+                onChangeText={onChange}
+                keyboardType="email-address"
+              />
+            )}
           />
+          {errors.email && (
+            <Text style={styles.errorText}>{errors.email.message}</Text>
+          )}
 
           {/* Password Input */}
-          <CustomInput
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={true}
-            showPasswordToggle={true}
+          <Controller
+            control={control}
+            name="password"
+            rules={{
+              required: "Password required",
+              minLength: { value: 4, message: "Min 4 chars" },
+            }}
+            render={({ field: { onChange, value } }) => (
+              <CustomInput
+                label="Password"
+                value={value}
+                onChangeText={onChange}
+                secureTextEntry
+                showPasswordToggle
+              />
+            )}
           />
+          {errors.password && (
+            <Text style={styles.errorText}>{errors.password.message}</Text>
+          )}
 
-          {/* Remember me + Forgot password */}
+          {/* Remember Me */}
           <View style={styles.rememberContainer}>
             <View style={styles.checkboxRow}>
               <Checkbox.Android
@@ -95,7 +154,7 @@ const Login = ({ navigation }) => {
           {/* Login Button */}
           <GradientButton
             title="Log In"
-            onPress={handleLogin}
+            onPress={handleSubmit(onSubmit)}
             style={styles.signUpButton}
           />
 
@@ -117,24 +176,20 @@ const Login = ({ navigation }) => {
             <Text style={styles.footerText}>Don’t have an account?</Text>
             <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
               <Text style={styles.link}> Sign Up</Text>
-              
             </TouchableOpacity>
           </View>
-        </View>
+        </Animated.View>
       </View>
     </KeyboardAvoidingView>
   );
 };
 
+// Keep your styles same as before
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
     padding: 20,
-    justifyContent: "center",
-  },
-  content: {
-    flex: 1,
     justifyContent: "center",
   },
   backgroundImage: {
@@ -157,10 +212,8 @@ const styles = StyleSheet.create({
     zIndex: 1,
     opacity: 1.25,
   },
-  logo: {
-    resizeMode: "contain",
-    alignSelf: "center",
-  },
+  content: { flex: 1, justifyContent: "center" },
+  logo: { resizeMode: "contain", alignSelf: "center" },
   title: {
     fontSize: 24,
     fontWeight: "700",
@@ -181,6 +234,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: 25,
   },
+  errorText: { color: "red", fontSize: 12, marginBottom: 5, marginLeft: 5 },
   signUpButton: {
     height: 48,
     borderRadius: 10,
@@ -197,25 +251,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderColor: "#414141",
   },
-  rememberText: {
-    color: "#414141",
-    fontSize: 12,
-  },
-  forgotText: {
-    color: "#068EFF",
-    fontSize: 12,
-    fontWeight: "500",
-  },
+  rememberText: { color: "#414141", fontSize: 12 },
+  forgotText: { color: "#068EFF", fontSize: 12, fontWeight: "500" },
   dividerContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginVertical: 20,
   },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#ccc",
-  },
+  line: { flex: 1, height: 1, backgroundColor: "#ccc" },
   orText: {
     marginHorizontal: 10,
     color: "#999",
@@ -233,28 +276,11 @@ const styles = StyleSheet.create({
     height: 48,
     backgroundColor: "#EFF0F7",
   },
-  googleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 8,
-  },
-  googleText: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#414141",
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 15,
-  },
-  footerText: {
-    color: Colors.gray,
-  },
-  link: {
-    color: "#068EFF",
-    fontWeight: "600",
-  },
+  googleIcon: { width: 20, height: 20, marginRight: 8 },
+  googleText: { fontSize: 15, fontWeight: "500", color: "#414141" },
+  footer: { flexDirection: "row", justifyContent: "center", marginTop: 15 },
+  footerText: { color: Colors.gray },
+  link: { color: "#068EFF", fontWeight: "600" },
 });
 
 export default Login;

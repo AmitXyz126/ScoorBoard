@@ -1,5 +1,11 @@
 import React from "react";
-import { View, TextInput, StyleSheet, Text, TouchableOpacity } from "react-native";
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function CustomInput({
@@ -55,8 +61,9 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: "#333",
-    marginBottom: 6,
+    color: "#414141",
+    marginBottom: 3,
+    marginVertical: 10,
   },
   inputWrapper: {
     flexDirection: "row",

@@ -6,6 +6,7 @@ import GradientButton from "../gradientButton/GradientButton";
 import GradientText from "../gradientText/GradientText";
 import meet from "../../assets/meet.png"
 import person from "../../assets/person.png"
+import backIcon from "../../assets/backIcon.png"
 
 const SingleMatchScreen = ({ navigation }) => {
   return (
@@ -14,7 +15,9 @@ const SingleMatchScreen = ({ navigation }) => {
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
-        <Ionicons name="arrow-back" size={24} color="black" />
+        {/* <Ionicons name="arrow-back" size={24} color="black" /> */}
+
+        <Image source={backIcon} style={styles.backIcon}></Image>
       </TouchableOpacity>
 
       <Text style={styles.title}>Start Match</Text>
@@ -70,10 +73,16 @@ const styles = StyleSheet.create({
     top: 60,
     left: 20,
   },
+  backIcon:{
+    width:24,
+    height:24,
+  
+  },
   title: {
     fontSize: 22,
     fontWeight: "700",
     marginBottom: 40,
+    marginTop:24,
   },
   teamBox: {
     flexDirection: "row",

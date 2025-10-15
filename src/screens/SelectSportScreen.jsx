@@ -9,7 +9,6 @@ const sportsData = [
 ];
 
 const SelectSportScreen = ({ navigation }) => {
- 
   const [selectedSport, setSelectedSport] = useState(sportsData[0].id);
 
   const handleNext = () => {
@@ -27,7 +26,7 @@ const SelectSportScreen = ({ navigation }) => {
         <View style={styles.progressInactive} />
       </View>
 
-      <Text style={styles.heading}>Select your Sport*</Text>
+      <Text style={styles.heading}>Select your are Sport*</Text>
 
       <View style={styles.grid}>
         {sportsData.map((sport) => (
@@ -65,11 +64,11 @@ const styles = StyleSheet.create({
   progressContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginBottom: 30,
+    marginBottom: 24,
   },
   progressActive: {
-    height: 5,
-    width: 150,
+    height: 4,
+    width: 157,
     backgroundColor: "#3F8CFF",
     borderRadius: 5,
     marginHorizontal: 5,
@@ -85,11 +84,11 @@ const styles = StyleSheet.create({
     fontFamily: "Kumbh Sans",
     fontSize: 24,
     fontStyle: "normal",
-    fontWeight: "700",
+    fontWeight: "800",
     lineHeight: 33.6,
     color: "#212121",
     textAlign: "center",
-    marginBottom: 30,
+    marginBottom: 16,
   },
   grid: {
     flexDirection: "row",
@@ -120,7 +119,8 @@ const styles = StyleSheet.create({
   sportName: {
     marginTop: 8,
     fontWeight: "600",
-    color: "#000",
+    color: "#212121",
+    fontSize: 16,
   },
   footer: {
     marginTop: 180,

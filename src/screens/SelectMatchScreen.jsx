@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import Colors from "../contants/Colors";
-import { Ionicons } from "@expo/vector-icons";
+// import { Ionicons } from "@expo/vector-icons";
+import backIcon from "../../assets/backIcon.png";
 
 const SelectMatchScreen = ({ navigation }) => {
   const [selectedType, setSelectedType] = useState(null);
@@ -12,7 +13,6 @@ const SelectMatchScreen = ({ navigation }) => {
       return;
     }
 
- 
     if (selectedType === "single") {
       navigation.navigate("SingleMatchScreen");
     } else if (selectedType === "tournament") {
@@ -27,7 +27,7 @@ const SelectMatchScreen = ({ navigation }) => {
         onPress={() => navigation.goBack()}
       >
         {/* Back arrow */}
-        <Ionicons name="arrow-back" size={24} color="black" />
+        <Image source={backIcon} style={styles.backArrow}></Image>
       </TouchableOpacity>
 
       {/* Progress */}
@@ -83,6 +83,11 @@ const styles = StyleSheet.create({
     left: 20,
     zIndex: 10,
   },
+
+  backArrow: {
+    width: 24,
+    height: 24,
+  },
   progressContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -90,8 +95,8 @@ const styles = StyleSheet.create({
     marginTop: 50,
   },
   progressActive: {
-    height: 5,
-    width: 145,
+    height: 4,
+    width: 165,
     backgroundColor: "#3F8CFF",
     borderRadius: 5,
     marginHorizontal: 5,
