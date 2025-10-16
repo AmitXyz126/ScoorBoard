@@ -9,30 +9,78 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import Colors from "../contants/Colors";
 import GradientButton from "../gradientButton/GradientButton";
 import { BlurView } from "expo-blur";
 import CustomInput from "../components/CustomInput";
 import backIcon from "../../assets/backIcon.png";
+import { createTeam, uploadLogo } from "../api/auth";
 
 const AddTeamScreen = ({ navigation }) => {
   const [teamName, setTeamName] = useState("");
   const [country, setCountry] = useState("");
   const [showDialog, setShowDialog] = useState(false);
+  const [teamLogo, setTeamLogo] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [newTeam, setNewTeam] = useState(null);
 
-  const handleSave = () => {
+  // Pick image from gallery
+  const handlePickImage = async () => {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      alert("Permission to access gallery is required!");
+      return;
+    }
+
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+
+    if (!pickerResult.canceled) return;
+
+    setTeamLogo(pickerResult.assets[0]);
+  };
+
+  const handleSave = async () => {
     if (!teamName || !country) {
       alert("Please fill all fields!");
       return;
     }
-    setShowDialog(true);
+
+    setLoading(true);
+    try {
+      let logoUrl = null;
+
+      if (teamLogo) {
+        const uploadRes = await uploadLogo(teamLogo);
+      
+        logoUrl = uploadRes.url || uploadRes.id || 1;
+      }
+ 
+      const createdTeam = await createTeam({
+        name: teamName,
+        country,
+        logo: logoUrl,
+      });
+
+      setNewTeam(createdTeam);
+      setShowDialog(true);
+    } catch (error) {
+      alert(error.message || "Failed to create team");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSelectTeam = () => {
     setShowDialog(false);
-    navigation.goBack();
+    navigation.navigate("SingleMatchScreen", { selectedTeam: newTeam });
   };
 
   return (
@@ -48,18 +96,24 @@ const AddTeamScreen = ({ navigation }) => {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Image source={backIcon} style={styles.backArrow}></Image>
-          {/* <Ionicons name="arrow-back" size={24} color="black" /> */}
+          <Image source={backIcon} style={styles.backArrow} />
         </TouchableOpacity>
 
         <Text style={styles.title}>Add New Team</Text>
 
-        <View style={styles.imageUpload}>
-          <Ionicons name="image-outline" size={48} color="#ccc" />
-          <TouchableOpacity style={styles.imageIcon}>
+        <TouchableOpacity style={styles.imageUpload} onPress={handlePickImage}>
+          {teamLogo ? (
+            <Image
+              source={{ uri: teamLogo.uri }}
+              style={{ width: "100%", height: "100%", borderRadius: 50 }}
+            />
+          ) : (
+            <Ionicons name="image-outline" size={48} color="#ccc" />
+          )}
+          <View style={styles.imageIcon}>
             <Ionicons name="camera" size={18} color="#fff" />
-          </TouchableOpacity>
-        </View>
+          </View>
+        </TouchableOpacity>
 
         <CustomInput
           label="Team Name"
@@ -73,9 +127,10 @@ const AddTeamScreen = ({ navigation }) => {
         />
 
         <GradientButton
-          title="Save Team"
+          title={loading ? <ActivityIndicator color="#fff" /> : "Save Team"}
           onPress={handleSave}
           style={styles.saveText}
+          disabled={loading}
         />
 
         {/* Modal (Dialog Box) */}
@@ -93,11 +148,24 @@ const AddTeamScreen = ({ navigation }) => {
             />
             <View style={styles.modalBox}>
               <Image
-                source={{ uri: "https://i.ibb.co/yS6T3DH/team1.png" }}
+                source={{
+                  uri: teamLogo?.uri || "https://i.ibb.co/yS6T3DH/team1.png",
+                }}
                 style={styles.modalImg}
               />
-              <Text style={styles.modalTeam}>{teamName}</Text>
-              <Text style={styles.modalCountry}>{country}</Text>
+              {/* <input
+              id="profile-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageUpload}
+            /> */}
+              {/* <Image
+  source={{ uri: `${BASE_URL}${newTeam.logo.url}` }} 
+  style={styles.modalImg}
+/> */}
+              <Text style={styles.modalTeam}>{newTeam?.name}</Text>
+              <Text style={styles.modalCountry}>{newTeam?.country}</Text>
 
               <TouchableOpacity
                 style={styles.modalButton}
@@ -123,21 +191,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
   },
-  backButton: {
-    position: "absolute",
-    top: 60,
-    left: 20,
-  },
-
-  backArrow: {
-    width: 24,
-    height: 24,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 40,
-  },
+  backButton: { position: "absolute", top: 60, left: 20 },
+  backArrow: { width: 24, height: 24 },
+  title: { fontSize: 20, fontWeight: "700", marginBottom: 40 },
   imageUpload: {
     width: 100,
     height: 100,
@@ -147,6 +203,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 30,
     position: "relative",
+    overflow: "hidden",
   },
   imageIcon: {
     position: "absolute",
@@ -162,16 +219,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     height: 48,
     borderRadius: 10,
-    marginTop: 296,
+    marginTop: 30,
     alignSelf: "stretch",
-  },
-
-  // Modal styles
-  modalContainer: {
-    flex: 1,
     justifyContent: "center",
-    alignItems: "center",
   },
+  modalContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   modalBox: {
     width: "90%",
     backgroundColor: "#fff",

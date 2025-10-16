@@ -29,7 +29,6 @@ const TournamentScreen = ({ navigation }) => {
           <Text style={styles.teamName}>Chelsea</Text>
           <Text style={styles.teamSub}>Team A</Text>
         </View>
-        {/* <Ionicons name="chevron-down" size={20} color="#555" /> */}
         <Image source={downArrow} style={styles.downArrow}></Image>
       </View>
 

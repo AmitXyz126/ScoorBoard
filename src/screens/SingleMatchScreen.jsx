@@ -1,36 +1,84 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Modal,
+  FlatList,
+  ActivityIndicator,
+} from "react-native";
 import Colors from "../contants/Colors";
 import GradientButton from "../gradientButton/GradientButton";
 import GradientText from "../gradientText/GradientText";
-import meet from "../../assets/meet.png"
-import person from "../../assets/person.png"
-import backIcon from "../../assets/backIcon.png"
+import meet from "../../assets/meet.png";
+import person from "../../assets/person.png";
+import backIcon from "../../assets/backIcon.png";
+import downArrow from "../../assets/downArrow.png";
+import plusIcon from "../../assets/plus.png";
+
+import { useFocusEffect } from "@react-navigation/native";
+import { getTeams } from "../api/auth";
 
 const SingleMatchScreen = ({ navigation }) => {
+  const [teamsList, setTeamsList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [teamA, setTeamA] = useState("");
+  const [teamB, setTeamB] = useState("");
+  const [visibleModal, setVisibleModal] = useState(null);
+
+  //  Fetch teams from API
+  const fetchTeams = async () => {
+    try {
+      setLoading(true);
+      const response = await getTeams();
+      console.log("Fetched Teams:", response);
+      setTeamsList(response || []);
+    } catch (error) {
+      console.error("Error fetching teams:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+ 
+  useFocusEffect(
+    useCallback(() => {
+      fetchTeams();
+    }, [])
+  );
+
+  const handleSelectTeam = (teamName) => {
+    if (visibleModal === "A") setTeamA(teamName);
+    else if (visibleModal === "B") setTeamB(teamName);
+    setVisibleModal(null);
+  };
+
   return (
     <View style={styles.container}>
+ 
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
-        {/* <Ionicons name="arrow-back" size={24} color="black" /> */}
-
-        <Image source={backIcon} style={styles.backIcon}></Image>
+        <Image source={backIcon} style={styles.backIcon} />
       </TouchableOpacity>
 
       <Text style={styles.title}>Start Match</Text>
 
+      {/* Team A Box */}
       <View style={styles.teamBox}>
-        <Image
-          source={ meet}
-          style={styles.teamLogo}
-        />
-        <View>
-          <Text style={styles.teamName}>Chelsea</Text>
-          <Text style={styles.teamSub}>Team A</Text>
+        <View style={styles.teamInfo}>
+          <Image source={meet} style={styles.teamLogo} />
+          <View>
+            <Text style={styles.teamName}>{teamA || "Select Team A"}</Text>
+            <Text style={styles.teamSub}>Team A</Text>
+          </View>
         </View>
+        <TouchableOpacity onPress={() => setVisibleModal("A")}>
+          <Image source={downArrow} style={styles.downArrow} />
+        </TouchableOpacity>
       </View>
 
       <GradientText
@@ -44,18 +92,93 @@ const SingleMatchScreen = ({ navigation }) => {
         }}
       />
 
+      {/* Team B Box */}
       <View style={styles.teamBox}>
-        <Image
-          source={ person}
-          style={styles.teamLogo}
-        />
-        <View>
-          <Text style={styles.teamName}>Melon</Text>
-          <Text style={styles.teamSub}>Team B</Text>
+        <View style={styles.teamInfo}>
+          <Image source={person} style={styles.teamLogo} />
+          <View>
+            <Text style={styles.teamName}>{teamB || "Select Team B"}</Text>
+            <Text style={styles.teamSub}>Team B</Text>
+          </View>
         </View>
+        <TouchableOpacity onPress={() => setVisibleModal("B")}>
+          <Image source={downArrow} style={styles.downArrow} />
+        </TouchableOpacity>
       </View>
 
-      <GradientButton title="Start Match" style={styles.startText} />
+      {/* Footer Buttons */}
+      <View style={styles.footerButtons}>
+        <GradientButton
+          title="Start Match"
+          onPress={() => navigation.navigate("")}
+          style={styles.gradientBtn}
+        />
+
+        <TouchableOpacity
+          style={styles.newTeamButton}
+          onPress={() => navigation.navigate("AddTeamScreen")}
+        >
+          <Image
+            source={plusIcon}
+            style={{ width: 18, height: 18, marginRight: 6 }}
+          />
+          <Text style={styles.newTeamText}>New Team</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Modal for Selecting Team */}
+      <Modal transparent visible={!!visibleModal} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Team</Text>
+
+            {loading ? (
+              <ActivityIndicator size="large" color={Colors.primary} />
+            ) : (
+              <FlatList
+                data={teamsList}
+                keyExtractor={(item) => item.id?.toString()}
+                renderItem={({ item }) => {
+                  const teamName = item.name || "Unnamed";
+                  const isDisabled =
+                    (visibleModal === "A" && teamName === teamB) ||
+                    (visibleModal === "B" && teamName === teamA);
+
+                  return (
+                    <TouchableOpacity
+                      disabled={isDisabled}
+                      style={[
+                        styles.teamItem,
+                        isDisabled && {
+                          backgroundColor: "#f0f0f0",
+                          opacity: 0.5,
+                        },
+                      ]}
+                      onPress={() => handleSelectTeam(teamName)}
+                    >
+                      <Text
+                        style={[
+                          styles.teamItemText,
+                          isDisabled && { color: "#999" },
+                        ]}
+                      >
+                        {teamName}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            )}
+
+            <TouchableOpacity
+              onPress={() => setVisibleModal(null)}
+              style={styles.closeButton}
+            >
+              <Text style={styles.closeText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -73,26 +196,30 @@ const styles = StyleSheet.create({
     top: 60,
     left: 20,
   },
-  backIcon:{
-    width:24,
-    height:24,
-  
+  backIcon: {
+    width: 24,
+    height: 24,
   },
   title: {
     fontSize: 22,
     fontWeight: "700",
     marginBottom: 40,
-    marginTop:24,
+    marginTop: 24,
   },
   teamBox: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     backgroundColor: "#F7F7F7",
     width: "99%",
     padding: 15,
     borderRadius: 12,
     marginBottom: 20,
     marginTop: 16,
+  },
+  teamInfo: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   teamLogo: {
     width: 50,
@@ -108,28 +235,81 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#777",
   },
-  vsText: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: Colors.primary,
-    marginVertical: 15,
+  gradientBtn: {
+    flex: 1,
+    marginRight: 10,
   },
-  startButton: {
-    width: "85%",
-    backgroundColor: Colors.primary,
-    borderRadius: 8,
-    paddingVertical: 14,
+  newTeamButton: {
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: 40,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
   },
-  startText: {
-    color: "#fff",
-    fontSize: 16,
-    height: 48,
-    alignSelf: "stretch",
+  newTeamText: {
+    color: Colors.primary,
     fontWeight: "600",
+    marginLeft: 4,
+    fontSize: 16,
+  },
+  downArrow: {
+    width: 32,
+    height: 32,
+    borderRadius: 5,
+    backgroundColor: "#FFF",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 6,
+    flexShrink: 0,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  footerButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "85%",
     marginTop: 288,
-    borderRadius: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    width: "80%",
+    borderRadius: 12,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  teamItem: {
+    paddingVertical: 10,
+    borderBottomColor: "#ddd",
+    borderBottomWidth: 1,
+  },
+  teamItemText: {
+    fontSize: 16,
+    textAlign: "center",
+  },
+  closeButton: {
+    marginTop: 15,
+    alignItems: "center",
+  },
+  closeText: {
+    color: Colors.primary || "#007BFF",
+    fontWeight: "600",
+    fontSize: 16,
   },
 });
 

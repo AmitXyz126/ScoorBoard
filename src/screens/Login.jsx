@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { Checkbox } from "react-native-paper";
 import { useForm, Controller } from "react-hook-form";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomInput from "../components/CustomInput";
 import GradientButton from "../gradientButton/GradientButton";
 import Colors from "../contants/Colors";
@@ -26,18 +27,14 @@ const Login = ({ navigation }) => {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm({
-    defaultValues: { email: "", password: "" },
-  });
+  } = useForm({ defaultValues: { email: "", password: "" } });
 
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
 
   useEffect(() => {
-    // Animate Login screen content on mount
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -57,10 +54,26 @@ const Login = ({ navigation }) => {
     const { email, password } = data;
     try {
       const res = await loginUser({ identifier: email, password });
+
+      // Store token & user info in AsyncStorage
+      await AsyncStorage.setItem("userToken", res.jwt);
+      await AsyncStorage.setItem("userInfo", JSON.stringify(res.user));
+
       Alert.alert("Success", "Login successful!");
       navigation.replace("SelectSport");
     } catch (error) {
       Alert.alert("Error", error.message || "Login failed!");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem("userToken");
+      await AsyncStorage.removeItem("userInfo");
+      Alert.alert("Logged out!");
+      navigation.replace("Login");
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -91,7 +104,6 @@ const Login = ({ navigation }) => {
             Log in to explore about our app
           </Text>
 
-          {/* Email Input */}
           <Controller
             control={control}
             name="email"
@@ -113,7 +125,6 @@ const Login = ({ navigation }) => {
             <Text style={styles.errorText}>{errors.email.message}</Text>
           )}
 
-          {/* Password Input */}
           <Controller
             control={control}
             name="password"
@@ -135,7 +146,6 @@ const Login = ({ navigation }) => {
             <Text style={styles.errorText}>{errors.password.message}</Text>
           )}
 
-          {/* Remember Me */}
           <View style={styles.rememberContainer}>
             <View style={styles.checkboxRow}>
               <Checkbox.Android
@@ -151,27 +161,23 @@ const Login = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          {/* Login Button */}
           <GradientButton
             title="Log In"
             onPress={handleSubmit(onSubmit)}
             style={styles.signUpButton}
           />
 
-          {/* Divider */}
           <View style={styles.dividerContainer}>
             <View style={styles.line} />
             <Text style={styles.orText}>Or login with</Text>
             <View style={styles.line} />
           </View>
 
-          {/* Google Button */}
           <TouchableOpacity style={styles.googleButton}>
             <Image source={GoogleIcon} style={styles.googleIcon} />
             <Text style={styles.googleText}>Continue with Google</Text>
           </TouchableOpacity>
 
-          {/* Footer */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don’t have an account?</Text>
             <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
