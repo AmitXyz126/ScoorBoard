@@ -54,7 +54,7 @@ const ViewLogin = ({ navigation }) => {
           title="Go to Home"
           style={styles.secondLast}
         />
-        onPress={() => alert("Match Over!")}
+        {/* onPress={() => alert("Match Over!")} */}
       </ScrollView>
     </KeyboardAvoidingView>
   );

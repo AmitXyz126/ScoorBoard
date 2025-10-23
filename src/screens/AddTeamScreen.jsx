@@ -19,16 +19,17 @@ import { BlurView } from "expo-blur";
 import CustomInput from "../components/CustomInput";
 import backIcon from "../../assets/backIcon.png";
 import { createTeam, uploadLogo } from "../api/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AddTeamScreen = ({ navigation }) => {
   const [teamName, setTeamName] = useState("");
   const [country, setCountry] = useState("");
   const [showDialog, setShowDialog] = useState(false);
   const [teamLogo, setTeamLogo] = useState(null);
+  const [logoId, setLogoId] = useState(0);
   const [loading, setLoading] = useState(false);
   const [newTeam, setNewTeam] = useState(null);
 
-  // Pick image from gallery
   const handlePickImage = async () => {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -42,8 +43,9 @@ const AddTeamScreen = ({ navigation }) => {
       quality: 1,
     });
 
-    if (!pickerResult.canceled) return;
+    console.log("Picker Result", pickerResult);
 
+    if (pickerResult.canceled) return;
     setTeamLogo(pickerResult.assets[0]);
   };
 
@@ -55,22 +57,42 @@ const AddTeamScreen = ({ navigation }) => {
 
     setLoading(true);
     try {
-      let logoUrl = null;
+      const storedUserToken = await AsyncStorage.getItem("userToken");
 
       if (teamLogo) {
-        const uploadRes = await uploadLogo(teamLogo);
-      
-        logoUrl = uploadRes.url || uploadRes.id || 1;
-      }
- 
-      const createdTeam = await createTeam({
-        name: teamName,
-        country,
-        logo: logoUrl,
-      });
+        // iOS and Android compatible file object
+        const localUri = teamLogo.uri;
+        const filename = localUri.split("/").pop();
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : "image";
 
-      setNewTeam(createdTeam);
-      setShowDialog(true);
+        const fileToUpload = {
+          uri: localUri,
+          name: filename,
+          type,
+        };
+
+        const uploadRes = await uploadLogo(fileToUpload, storedUserToken);
+        console.log(uploadRes?.[0].id, "Resp");
+
+        setLogoId(uploadRes?.[0].id);
+
+        const createdTeam = await createTeam({
+          name: teamName,
+          country,
+          logo: uploadRes?.[0].id,
+        });
+
+        setNewTeam(createdTeam);
+        setShowDialog(true);
+      } else {
+         const createdTeam = await createTeam({
+          name: teamName,
+          country,
+        });
+        setNewTeam(createdTeam);
+        setShowDialog(true);
+      }
     } catch (error) {
       alert(error.message || "Failed to create team");
     } finally {
@@ -153,17 +175,6 @@ const AddTeamScreen = ({ navigation }) => {
                 }}
                 style={styles.modalImg}
               />
-              {/* <input
-              id="profile-upload"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageUpload}
-            /> */}
-              {/* <Image
-  source={{ uri: `${BASE_URL}${newTeam.logo.url}` }} 
-  style={styles.modalImg}
-/> */}
               <Text style={styles.modalTeam}>{newTeam?.name}</Text>
               <Text style={styles.modalCountry}>{newTeam?.country}</Text>
 

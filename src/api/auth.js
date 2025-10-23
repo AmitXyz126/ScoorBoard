@@ -5,14 +5,14 @@ import { ENDPOINTS } from "./endpoints";
 export const loginUser = async (loginData) => {
   try {
     const response = await axios.post(ENDPOINTS.LOGIN, loginData);
-    return response.data; // response me token & user info aana chahiye
+    return response.data;
   } catch (error) {
     console.error("Login Error:", error.response?.data || error.message);
     throw error.response?.data || { message: "Login failed" };
   }
 };
 
-// Baaki APIs remain same
+//  Register
 export const registerUser = async (userData) => {
   try {
     const response = await axios.post(ENDPOINTS.REGISTER, userData);
@@ -58,22 +58,14 @@ export const getTeams = async () => {
 
 // Upload Logo
 export const uploadLogo = async (file, userToken) => {
+  console.log("Selected file:", file);
+
   try {
     const formData = new FormData();
-    formData.append("file", {
-      uri: file.uri,
-      name: file.name || "logo.png",
-      type: file.type || "image/png",
-    });
-
-    const url = teamId
-      ? `${ENDPOINTS.UPLOAD_LOGO}?id=${teamId}`
-      : ENDPOINTS.UPLOAD_LOGO;
-
-    const response = await axios.post(url, formData, {
-      headers: { 
-        "Content-Type": "multipart/form-data",
-        ...(userToken && { Authorization: `Bearer ${userToken}` }),
+    formData.append("files", file);
+    const response = await axios.post( ENDPOINTS.UPLOAD_LOGO, formData, {
+      headers: {
+        Authorization: `Bearer ${userToken}`,
       },
     });
 

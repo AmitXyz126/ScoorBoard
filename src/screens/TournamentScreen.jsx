@@ -1,35 +1,92 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Modal,
+  FlatList,
+  ActivityIndicator,
+} from "react-native";
 import Colors from "../contants/Colors";
 import GradientButton from "../gradientButton/GradientButton";
 import GradientText from "../gradientText/GradientText";
-import person from "../../assets/person.png";
-import meet from "../../assets/meet.png";
 import backIcon from "../../assets/backIcon.png";
 import plusIcon from "../../assets/plus.png";
 import downArrow from "../../assets/downArrow.png";
+import defaultLogo from "../../assets/userss.png";
+
+import { getTeams } from "../api/auth";
+import { useFocusEffect } from "@react-navigation/native";
 
 const TournamentScreen = ({ navigation }) => {
+  const [teamsList, setTeamsList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [teamA, setTeamA] = useState({});
+  const [teamB, setTeamB] = useState({});
+  const [visibleModal, setVisibleModal] = useState(null);
+
+  
+  const fetchTeams = async () => {
+    try {
+      setLoading(true);
+      const response = await getTeams();
+      setTeamsList(response || []);
+    } catch (error) {
+      console.error("Error fetching teams:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchTeams();
+    }, [])
+  );
+
+  // Handle selection
+  const handleSelectTeam = (team) => {
+    if (visibleModal === "A") setTeamA(team);
+    else if (visibleModal === "B") setTeamB(team);
+    setVisibleModal(null);
+  };
+
+  // Prepare logo URLs
+  const teamALogo = teamA?.logo?.formats?.thumbnail?.url
+    ? `${process.env.EXPO_PUBLIC_API_URL}${teamA.logo.formats.thumbnail.url}`
+    : null;
+
+  const teamBLogo = teamB?.logo?.formats?.thumbnail?.url
+    ? `${process.env.EXPO_PUBLIC_API_URL}${teamB.logo.formats.thumbnail.url}`
+    : null;
+
   return (
     <View style={styles.container}>
+      {/* Back Button */}
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
-        <Image source={backIcon} style={styles.backIcon}></Image>
+        <Image source={backIcon} style={styles.backIcon} />
       </TouchableOpacity>
 
       <Text style={styles.title}>Tournament Select Teams</Text>
 
-      {/* Team A */}
+      {/* TEAM A */}
       <View style={styles.teamBox}>
-        <Image source={meet} style={styles.teamLogo} />
+        <Image
+          source={teamALogo ? { uri: teamALogo } : defaultLogo}
+          style={styles.teamLogo}
+        />
         <View style={styles.teamInfo}>
-          <Text style={styles.teamName}>Chelsea</Text>
+          <Text style={styles.teamName}>{teamA.name || "Select Team A"}</Text>
           <Text style={styles.teamSub}>Team A</Text>
         </View>
-        <Image source={downArrow} style={styles.downArrow}></Image>
+        <TouchableOpacity onPress={() => setVisibleModal("A")}>
+          <Image source={downArrow} style={styles.downArrow} />
+        </TouchableOpacity>
       </View>
 
       <GradientText
@@ -43,23 +100,28 @@ const TournamentScreen = ({ navigation }) => {
         }}
       />
 
-      {/* Team B */}
+      {/* TEAM B */}
       <View style={styles.teamBox}>
-        <Image source={person} style={styles.teamLogo} />
+        <Image
+          source={teamBLogo ? { uri: teamBLogo } : defaultLogo}
+          style={styles.teamLogo}
+        />
         <View style={styles.teamInfo}>
-          <Text style={styles.teamName}>Melon</Text>
+          <Text style={styles.teamName}>{teamB.name || "Select Team B"}</Text>
           <Text style={styles.teamSub}>Team B</Text>
         </View>
-        {/* <Ionicons name="chevron-down" size={20} color="#555" /> */}
-        <Image source={downArrow} style={styles.downArrow}></Image>
+        <TouchableOpacity onPress={() => setVisibleModal("B")}>
+          <Image source={downArrow} style={styles.downArrow} />
+        </TouchableOpacity>
       </View>
 
-      {/* Footer Buttons */}
+      {/* FOOTER */}
       <View style={styles.footerButtons}>
         <GradientButton
           title="Start Match"
-          onPress={() => navigation.navigate("HomeEditScore")}
+          onPress={() => navigation.navigate("HomeEditScore", { teamA, teamB })}
           style={styles.gradientBtn}
+          disabled={!teamA.name || !teamB.name}
         />
 
         <TouchableOpacity
@@ -73,6 +135,60 @@ const TournamentScreen = ({ navigation }) => {
           <Text style={styles.newTeamText}>New Team</Text>
         </TouchableOpacity>
       </View>
+
+      {/* MODAL for selecting teams */}
+      <Modal transparent visible={!!visibleModal} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Team</Text>
+
+            {loading ? (
+              <ActivityIndicator size="large" color={Colors.primary} />
+            ) : (
+              <FlatList
+                data={teamsList}
+                keyExtractor={(item) => item.id?.toString()}
+                renderItem={({ item }) => {
+                  const teamName = item.name || "Unnamed";
+                  const isDisabled =
+                    (visibleModal === "A" && teamName === teamB.name) ||
+                    (visibleModal === "B" && teamName === teamA.name);
+
+                  return (
+                    <TouchableOpacity
+                      disabled={isDisabled}
+                      style={[
+                        styles.teamItem,
+                        isDisabled && {
+                          backgroundColor: "#f0f0f0",
+                          opacity: 0.5,
+                        },
+                      ]}
+                      onPress={() => handleSelectTeam(item)}
+                    >
+                      <Text
+                        style={[
+                          styles.teamItemText,
+                          isDisabled && { color: "#999" },
+                        ]}
+                      >
+                        {teamName}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            )}
+
+            <TouchableOpacity
+              onPress={() => setVisibleModal(null)}
+              style={styles.closeButton}
+            >
+              <Text style={styles.closeText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -104,7 +220,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#F7F7F7",
     width: "85%",
-    padding: 24,
+    padding: 20,
     borderRadius: 12,
     marginBottom: 15,
     marginTop: 15,
@@ -118,12 +234,6 @@ const styles = StyleSheet.create({
   teamInfo: { flex: 1 },
   teamName: { fontSize: 18, fontWeight: "600" },
   teamSub: { fontSize: 14, color: "#777" },
-  vsText: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: Colors.primary,
-    marginVertical: 15,
-  },
   footerButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -158,13 +268,47 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 6,
     flexShrink: 0,
-
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.12,
     shadowRadius: 8,
-
     elevation: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    width: "80%",
+    borderRadius: 12,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  teamItem: {
+    paddingVertical: 10,
+    borderBottomColor: "#ddd",
+    borderBottomWidth: 1,
+  },
+  teamItemText: {
+    fontSize: 16,
+    textAlign: "center",
+  },
+  closeButton: {
+    marginTop: 15,
+    alignItems: "center",
+  },
+  closeText: {
+    color: Colors.primary || "#007BFF",
+    fontWeight: "600",
+    fontSize: 16,
   },
 });
 

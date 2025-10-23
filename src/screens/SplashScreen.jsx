@@ -9,7 +9,7 @@ const SplashScreen = ({ navigation }) => {
     }, 2000); 
 
     return () => clearTimeout(timer);  
-  }, []);
+  }, [navigation]);
 
   return (
     <View style={styles.container}>
@@ -21,7 +21,7 @@ const SplashScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#2563EB",
+    backgroundColor: "#068EFF",  
     justifyContent: "center",
     alignItems: "center",
   },

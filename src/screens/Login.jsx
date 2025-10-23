@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     width: "49%",
     height: "100%",
     resizeMode: "contain",
-    zIndex: 1,
+    zIndex: 0,
     opacity: 1.25,
   },
   content: { flex: 1, justifyContent: "center" },
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   googleButton: {
-    zIndex: 2,
+    zIndex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

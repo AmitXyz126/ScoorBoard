@@ -12,20 +12,19 @@ import {
 import Colors from "../contants/Colors";
 import GradientButton from "../gradientButton/GradientButton";
 import GradientText from "../gradientText/GradientText";
-import meet from "../../assets/meet.png";
-import person from "../../assets/person.png";
 import backIcon from "../../assets/backIcon.png";
 import downArrow from "../../assets/downArrow.png";
 import plusIcon from "../../assets/plus.png";
 
 import { useFocusEffect } from "@react-navigation/native";
 import { getTeams } from "../api/auth";
+import defaultLogo from "../../assets/userss.png";
 
 const SingleMatchScreen = ({ navigation }) => {
   const [teamsList, setTeamsList] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [teamA, setTeamA] = useState("");
-  const [teamB, setTeamB] = useState("");
+  const [teamA, setTeamA] = useState({});
+  const [teamB, setTeamB] = useState({});
   const [visibleModal, setVisibleModal] = useState(null);
 
   //  Fetch teams from API
@@ -33,7 +32,7 @@ const SingleMatchScreen = ({ navigation }) => {
     try {
       setLoading(true);
       const response = await getTeams();
-      console.log("Fetched Teams:", response);
+      // console.log("Fetched Teams:", response);
       setTeamsList(response || []);
     } catch (error) {
       console.error("Error fetching teams:", error);
@@ -42,22 +41,31 @@ const SingleMatchScreen = ({ navigation }) => {
     }
   };
 
- 
   useFocusEffect(
     useCallback(() => {
       fetchTeams();
     }, [])
   );
 
-  const handleSelectTeam = (teamName) => {
-    if (visibleModal === "A") setTeamA(teamName);
-    else if (visibleModal === "B") setTeamB(teamName);
+  const handleSelectTeam = (team) => {
+    // console.log(team, "team");
+    if (visibleModal === "A") setTeamA(team);
+    else if (visibleModal === "B") setTeamB(team);
     setVisibleModal(null);
   };
+ 
+  const teamALogo = teamA?.logo?.formats?.thumbnail?.url
+    ? `${process.env.EXPO_PUBLIC_API_URL}${teamA.logo.formats.thumbnail.url}`
+    : null;
+
+  const teamBLogo = teamB?.logo?.formats?.thumbnail?.url
+    ? `${process.env.EXPO_PUBLIC_API_URL}${teamB.logo.formats.thumbnail.url}`
+    : null;
+
+
 
   return (
     <View style={styles.container}>
- 
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
@@ -70,9 +78,14 @@ const SingleMatchScreen = ({ navigation }) => {
       {/* Team A Box */}
       <View style={styles.teamBox}>
         <View style={styles.teamInfo}>
-          <Image source={meet} style={styles.teamLogo} />
+          {/* <Image source={{ uri: teamALogo }} style={styles.teamLogo} /> */}
+          <Image
+            source={teamALogo ? { uri: teamALogo } : defaultLogo}  
+            style={styles.teamLogo}
+          />
+
           <View>
-            <Text style={styles.teamName}>{teamA || "Select Team A"}</Text>
+            <Text style={styles.teamName}>{teamA.name || "Select Team A"}</Text>
             <Text style={styles.teamSub}>Team A</Text>
           </View>
         </View>
@@ -95,9 +108,13 @@ const SingleMatchScreen = ({ navigation }) => {
       {/* Team B Box */}
       <View style={styles.teamBox}>
         <View style={styles.teamInfo}>
-          <Image source={person} style={styles.teamLogo} />
+          {/* <Image source={{ uri: teamBLogo }} style={styles.teamLogo} /> */}
+          <Image
+            source={teamBLogo ? { uri: teamBLogo } : defaultLogo}  
+            style={styles.teamLogo}
+          />
           <View>
-            <Text style={styles.teamName}>{teamB || "Select Team B"}</Text>
+            <Text style={styles.teamName}>{teamB.name || "Select Team B"}</Text>
             <Text style={styles.teamSub}>Team B</Text>
           </View>
         </View>
@@ -141,8 +158,8 @@ const SingleMatchScreen = ({ navigation }) => {
                 renderItem={({ item }) => {
                   const teamName = item.name || "Unnamed";
                   const isDisabled =
-                    (visibleModal === "A" && teamName === teamB) ||
-                    (visibleModal === "B" && teamName === teamA);
+                    (visibleModal === "A" && teamName === teamB.name) ||
+                    (visibleModal === "B" && teamName === teamA.name);
 
                   return (
                     <TouchableOpacity
@@ -154,7 +171,7 @@ const SingleMatchScreen = ({ navigation }) => {
                           opacity: 0.5,
                         },
                       ]}
-                      onPress={() => handleSelectTeam(teamName)}
+                      onPress={() => handleSelectTeam(item)}
                     >
                       <Text
                         style={[
@@ -245,8 +262,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.primary,
     borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 10,
+    paddingHorizontal: 28,
+    // paddingVertical: 0,
   },
   newTeamText: {
     color: Colors.primary,
@@ -268,11 +285,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 8,
     elevation: 4,
+    
   },
   footerButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: "85%",
+    width: "90%%",
     marginTop: 288,
   },
   modalOverlay: {
