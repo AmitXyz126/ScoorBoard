@@ -26,7 +26,6 @@ const AddTeamScreen = ({ navigation }) => {
   const [country, setCountry] = useState("");
   const [showDialog, setShowDialog] = useState(false);
   const [teamLogo, setTeamLogo] = useState(null);
-  const [logoId, setLogoId] = useState(0);
   const [loading, setLoading] = useState(false);
   const [newTeam, setNewTeam] = useState(null);
 
@@ -43,6 +42,7 @@ const AddTeamScreen = ({ navigation }) => {
       quality: 1,
     });
 
+    
     console.log("Picker Result", pickerResult);
 
     if (pickerResult.canceled) return;
@@ -61,6 +61,7 @@ const AddTeamScreen = ({ navigation }) => {
 
       if (teamLogo) {
         // iOS and Android compatible file object
+        console.log("teamLogo", teamLogo.file)
         const localUri = teamLogo.uri;
         const filename = localUri.split("/").pop();
         const match = /\.(\w+)$/.exec(filename);
@@ -72,10 +73,10 @@ const AddTeamScreen = ({ navigation }) => {
           type,
         };
 
-        const uploadRes = await uploadLogo(fileToUpload, storedUserToken);
-        console.log(uploadRes?.[0].id, "Resp");
+         console.log("fileToUpload", fileToUpload)
 
-        setLogoId(uploadRes?.[0].id);
+        const uploadRes = await uploadLogo(Platform.OS === 'ios' ? fileToUpload : teamLogo.file, storedUserToken);
+        console.log(uploadRes?.[0].id, "Resp");
 
         const createdTeam = await createTeam({
           name: teamName,
@@ -83,13 +84,6 @@ const AddTeamScreen = ({ navigation }) => {
           logo: uploadRes?.[0].id,
         });
 
-        setNewTeam(createdTeam);
-        setShowDialog(true);
-      } else {
-         const createdTeam = await createTeam({
-          name: teamName,
-          country,
-        });
         setNewTeam(createdTeam);
         setShowDialog(true);
       }

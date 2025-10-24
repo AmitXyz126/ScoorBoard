@@ -53,16 +53,30 @@ const SingleMatchScreen = ({ navigation }) => {
     else if (visibleModal === "B") setTeamB(team);
     setVisibleModal(null);
   };
- 
-  const teamALogo = teamA?.logo?.formats?.thumbnail?.url
-    ? `${process.env.EXPO_PUBLIC_API_URL}${teamA.logo.formats.thumbnail.url}`
+
+  const teamALogo = teamA?.logo
+    ? `${process.env.EXPO_PUBLIC_API_URL}${
+        teamA.logo.formats
+          ? teamA.logo.formats.thumbnail
+            ? teamA.logo.formats.thumbnail.url
+            : teamA.logo.formats?.small?.url
+          : teamA.logo.url
+      }`
     : null;
 
-  const teamBLogo = teamB?.logo?.formats?.thumbnail?.url
-    ? `${process.env.EXPO_PUBLIC_API_URL}${teamB.logo.formats.thumbnail.url}`
+  console.log("teamALogo", teamALogo);
+
+  const teamBLogo = teamB?.logo
+    ? `${process.env.EXPO_PUBLIC_API_URL}${
+        teamB.logo.formats
+          ? teamB.logo.formats.thumbnail
+            ? teamB.logo.formats.thumbnail.url
+            : teamB.logo.formats?.small?.url
+          : teamB.logo.url
+      }`
     : null;
 
-
+  console.log("teamBLogoB", teamBLogo);
 
   return (
     <View style={styles.container}>
@@ -80,7 +94,7 @@ const SingleMatchScreen = ({ navigation }) => {
         <View style={styles.teamInfo}>
           {/* <Image source={{ uri: teamALogo }} style={styles.teamLogo} /> */}
           <Image
-            source={teamALogo ? { uri: teamALogo } : defaultLogo}  
+            source={teamALogo ? { uri: teamALogo } : defaultLogo}
             style={styles.teamLogo}
           />
 
@@ -110,7 +124,7 @@ const SingleMatchScreen = ({ navigation }) => {
         <View style={styles.teamInfo}>
           {/* <Image source={{ uri: teamBLogo }} style={styles.teamLogo} /> */}
           <Image
-            source={teamBLogo ? { uri: teamBLogo } : defaultLogo}  
+            source={teamBLogo ? { uri: teamBLogo } : defaultLogo}
             style={styles.teamLogo}
           />
           <View>
@@ -122,6 +136,11 @@ const SingleMatchScreen = ({ navigation }) => {
           <Image source={downArrow} style={styles.downArrow} />
         </TouchableOpacity>
       </View>
+      <TouchableOpacity>
+        <Text style={styles.manage} onPress={() => navigation.navigate("TeamManagementScreen")}>
+          Manage your Teams
+        </Text>
+      </TouchableOpacity>
 
       {/* Footer Buttons */}
       <View style={styles.footerButtons}>
@@ -208,6 +227,14 @@ const styles = StyleSheet.create({
     paddingTop: 80,
     padding: 20,
   },
+  manage:{
+fontSize:16,
+color:"#068EFF",
+  fontWeight: "700",
+  fontStyle:"normal",
+  marginTop:20,
+
+  },
   backButton: {
     position: "absolute",
     top: 60,
@@ -285,7 +312,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 8,
     elevation: 4,
-    
   },
   footerButtons: {
     flexDirection: "row",

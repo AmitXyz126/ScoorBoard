@@ -68,7 +68,7 @@ export const uploadLogo = async (file, userToken) => {
         Authorization: `Bearer ${userToken}`,
       },
     });
-
+x``
     return response.data;
   } catch (error) {
     console.error("Upload Logo Error:", error.response?.data || error.message);

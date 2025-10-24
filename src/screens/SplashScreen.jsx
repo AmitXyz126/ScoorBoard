@@ -5,10 +5,10 @@ import vector from "../../assets/Vector.png";
 const SplashScreen = ({ navigation }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.replace("Login");  
-    }, 2000); 
+      navigation.replace("SelectSport");
+    }, 2000);
 
-    return () => clearTimeout(timer);  
+    return () => clearTimeout(timer);
   }, [navigation]);
 
   return (
@@ -21,7 +21,7 @@ const SplashScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#068EFF",  
+    backgroundColor: "#068EFF",
     justifyContent: "center",
     alignItems: "center",
   },

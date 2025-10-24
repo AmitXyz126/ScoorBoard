@@ -13,8 +13,8 @@ import AddTeamScreen from "../screens/AddTeamScreen";
 import HomeEditScore from "../screens/HomeEditScore";
 import ViewLogin from "../screens/ViewLogin";
 import FinalScoor from "../screens/FinalScoor";
+import TeamManagementScreen from "../screens/TeamManagementScreen";
  
-
 const Stack = createStackNavigator();
 
 const AppNavigation = () => {
@@ -31,9 +31,9 @@ const AppNavigation = () => {
         <Stack.Screen name="TournamentScreen" component={TournamentScreen} />
         <Stack.Screen name="AddTeamScreen" component={AddTeamScreen} />
         <Stack.Screen name="HomeEditScore" component={HomeEditScore} />
-        <Stack.Screen  name="ViewLogin"  component={ViewLogin} />
+        <Stack.Screen name="ViewLogin" component={ViewLogin} />
         <Stack.Screen name="FinalScoor" component={FinalScoor} />
-
+        <Stack.Screen name="TeamManagementScreen" component={TeamManagementScreen}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

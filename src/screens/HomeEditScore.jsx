@@ -23,10 +23,13 @@ const HomeEditScore = ({ navigation }) => {
     <View style={styles.container}>
       {/* Top Header */}
       <View style={styles.topBar}>
-        <Image source={sidelogo} style={styles.logo} />
+        <TouchableOpacity
+          onPress={() => navigation.navigate("")}
+        >
+          <Image source={sidelogo} style={styles.logo} />
+        </TouchableOpacity>
         <Image source={person} style={styles.personIcon} />
       </View>
-
       {/* Match Info */}
       <View style={styles.header}>
         <View>

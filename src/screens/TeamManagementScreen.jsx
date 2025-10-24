@@ -1,0 +1,281 @@
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  Image,
+  Modal,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
+import Colors from "../contants/Colors";
+import plusIcon from "../../assets/plusIcon.svg";
+import editIcon from "../../assets/editIcon.png";
+import deleteIcon from "../../assets/deleteIcon.png";
+
+const initialTeams = [
+  {
+    id: "1",
+    name: "Chelsea",
+    type: "Home",
+    logo: require("../../assets/person.png"),
+  },
+  {
+    id: "2",
+    name: "Arsenal",
+    type: "Away",
+    logo: require("../../assets/meet.png"),
+  },
+  {
+    id: "3",
+    name: "Tottenham",
+    type: "Home",
+    logo: require("../../assets/person.png"),
+  },
+  {
+    id: "4",
+    name: "Manchester United",
+    type: "Away",
+    logo: require("../../assets/meet.png"),
+  },
+  {
+    id: "5",
+    name: "Aston Villa",
+    type: "Home",
+    logo: require("../../assets/person.png"),
+  },
+  {
+    id: "6",
+    name: "Wolverhampton",
+    type: "Away",
+    logo: require("../../assets/meet.png"),
+  },
+  {
+    id: "7",
+    name: "Everton",
+    type: "Away",
+    logo: require("../../assets/person.png"),
+  },
+];
+
+const TeamManagementScreen = ({ navigation }) => {
+  const [teams, setTeams] = useState(initialTeams);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState(null);
+
+  const handleDeletePress = (team) => {
+    setSelectedTeam(team);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    setTeams(teams.filter((t) => t.id !== selectedTeam.id));
+    setShowDeleteModal(false);
+  };
+
+  const renderItem = ({ item }) => (
+    <View style={styles.teamCard}>
+      <View style={styles.teamInfo}>
+        <Image source={item.logo} style={styles.teamLogo} />
+        <View>
+          <Text style={styles.teamName}>{item.name}</Text>
+          <Text style={styles.teamType}>{item.type}</Text>
+        </View>
+      </View>
+      <View style={styles.actionIcons}>
+        <TouchableOpacity style={styles.iconButton}>
+          <Image source={editIcon} style={{ width: 20, height: 20 }} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.iconButton, styles.deleteBtn]}
+          onPress={() => handleDeletePress(item)}
+        >
+          <Image source={deleteIcon} style={{ width: 20, height: 20 }} />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.headerRow}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={24} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Team</Text>
+        <TouchableOpacity>
+          <Image
+            source={{ uri: "https://i.pravatar.cc/50" }}
+            style={styles.profileImage}
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* My Teams */}
+      <View style={styles.topRow}>
+        <Text style={styles.sectionTitle}>My Teams</Text>
+        <TouchableOpacity style={styles.newTeamButton}>
+          <Image source={plusIcon} style={styles.plusIcon} />
+          <Text style={styles.newTeamText}>New Team</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* List */}
+      <FlatList
+        data={teams}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={showDeleteModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDeleteModal(false)}
+      >
+        {/*  Background Blur */}
+        <BlurView intensity={10} tint="dark" style={styles.blurOverlay}>
+          <View style={styles.modalContent}>
+            <Image source={deleteIcon} style={styles.deleteText} />
+            <Text style={styles.modalTitle}>Delete Team</Text>
+            <Text style={styles.modalMessage}>
+              Are you sure you want to delete Chelsea{" "}
+              {/* <Text style={{ fontWeight: "600" }}>{selectedTeam?.name}</Text>? */}
+            </Text>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.cancelBtn]}
+                onPress={() => setShowDeleteModal(false)}
+              >
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.deleteConfirmBtn]}
+                onPress={confirmDelete}
+              >
+                <Text style={styles.deleteText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </BlurView>
+      </Modal>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#FFF",
+    paddingHorizontal: 15,
+    paddingTop: 60,
+  },
+  deleteText: {
+    marginBottom: 80,
+  },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  headerTitle: { fontSize: 18, fontWeight: "600" },
+  profileImage: { width: 32, height: 32, borderRadius: 16 },
+  topRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  sectionTitle: { fontSize: 20, fontWeight: "700" },
+  newTeamButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F3F6FF",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  plusIcon: { width: 14, height: 14, marginRight: 6 },
+  newTeamText: { color: Colors.primary, fontWeight: "600", fontSize: 14 },
+  listContainer: { paddingBottom: 40 },
+  teamCard: {
+    backgroundColor: "#F9F9F9",
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 12,
+    marginBottom: 12,
+  },
+  teamInfo: { flexDirection: "row", alignItems: "center" },
+  teamLogo: { width: 46, height: 46, borderRadius: 23, marginRight: 12 },
+  teamName: { fontSize: 16, fontWeight: "600" },
+  teamType: { fontSize: 13, color: "#777" },
+  actionIcons: { flexDirection: "row" },
+  iconButton: {
+    backgroundColor: "#ECECEC",
+    borderRadius: 8,
+    padding: 8,
+    marginLeft: 8,
+  },
+  deleteBtn: { backgroundColor: "#FFEAEA" },
+
+  // Blur background overlay
+  blurOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  // Modal content
+  modalContent: {
+    backgroundColor: "#fff",
+    width: "80%",
+    borderRadius: 12,
+    padding: 20,
+    alignItems: "center",
+    
+    
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    marginBottom: 3,
+    marginTop: 16,
+  },
+  modalMessage: {
+    fontSize: 14,
+    color: "#555",
+    textAlign: "center",
+    marginBottom: 20,
+    fontfamily: "Kumbh Sans",
+    width:210,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    // justifyContent: "space-between",
+    width: "100%",
+    gap:10,
+  },
+  modalBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  cancelBtn: { backgroundColor: "#F8F8F8", marginRight: 10, color:"#B3B3B3"},
+  deleteConfirmBtn: { backgroundColor: "#DD0000" },
+  cancelText: { color: "#333", fontWeight: "600" , padding:5,},
+  deleteText: { color: "#FFF", fontWeight: "600", padding:5, },
+});
+
+export default TeamManagementScreen;
