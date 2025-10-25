@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,96 +7,98 @@ import {
   FlatList,
   Image,
   Modal,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import Colors from "../contants/Colors";
-import plusIcon from "../../assets/plusIcon.svg";
 import editIcon from "../../assets/editIcon.png";
 import deleteIcon from "../../assets/deleteIcon.png";
-
-const initialTeams = [
-  {
-    id: "1",
-    name: "Chelsea",
-    type: "Home",
-    logo: require("../../assets/person.png"),
-  },
-  {
-    id: "2",
-    name: "Arsenal",
-    type: "Away",
-    logo: require("../../assets/meet.png"),
-  },
-  {
-    id: "3",
-    name: "Tottenham",
-    type: "Home",
-    logo: require("../../assets/person.png"),
-  },
-  {
-    id: "4",
-    name: "Manchester United",
-    type: "Away",
-    logo: require("../../assets/meet.png"),
-  },
-  {
-    id: "5",
-    name: "Aston Villa",
-    type: "Home",
-    logo: require("../../assets/person.png"),
-  },
-  {
-    id: "6",
-    name: "Wolverhampton",
-    type: "Away",
-    logo: require("../../assets/meet.png"),
-  },
-  {
-    id: "7",
-    name: "Everton",
-    type: "Away",
-    logo: require("../../assets/person.png"),
-  },
-];
+import plusIcon from "../../assets/plus.png";
+import { getTeams, deleteTeam } from "../api/auth";
 
 const TeamManagementScreen = ({ navigation }) => {
-  const [teams, setTeams] = useState(initialTeams);
+  const [teams, setTeams] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState(null);
+
+  // Fetch teams from backend
+  const fetchTeamsList = async () => {
+    try {
+      setLoading(true);
+      const response = await getTeams();
+      setTeams(response || []);
+    } catch (error) {
+      console.error("Error fetching teams:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeamsList();
+  }, []);
+ 
+  const confirmDelete = async () => {
+    if (!selectedTeam?.id) return;
+
+    try {
+      await deleteTeam(selectedTeam.id);
+      setTeams((prev) => prev.filter((t) => t.id !== selectedTeam.id));
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error("Error deleting team:", error);
+      alert("Failed to delete team. Please try again.");
+    }
+  };
 
   const handleDeletePress = (team) => {
     setSelectedTeam(team);
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    setTeams(teams.filter((t) => t.id !== selectedTeam.id));
-    setShowDeleteModal(false);
-  };
+  const renderItem = ({ item }) => {
+    const logoUrl = item.logo
+      ? `${process.env.EXPO_PUBLIC_API_URL}${
+          item.logo.formats?.thumbnail?.url ||
+          item.logo.formats?.small?.url ||
+          item.logo.url
+        }`
+      : "https://via.placeholder.com/50";
 
-  const renderItem = ({ item }) => (
-    <View style={styles.teamCard}>
-      <View style={styles.teamInfo}>
-        <Image source={item.logo} style={styles.teamLogo} />
-        <View>
-          <Text style={styles.teamName}>{item.name}</Text>
-          <Text style={styles.teamType}>{item.type}</Text>
+    return (
+      <View style={styles.teamCard}>
+        <View style={styles.teamInfo}>
+          <Image source={{ uri: logoUrl }} style={styles.teamLogo} />
+          <View>
+            <Text style={styles.teamName}>{item.name}</Text>
+            <Text style={styles.teamType}>{item.type || "Team"}</Text>
+          </View>
+        </View>
+
+        <View style={styles.actionIcons}>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() =>{
+              navigation.navigate("EditTeamScreen", { teamId: item.id })
+              console.log(item.id, "itemID")}
+            }
+            
+          >
+            <Image source={editIcon} style={{ width: 20, height: 20 }} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.iconButton, styles.deleteBtn]}
+            onPress={() => handleDeletePress(item)}
+          >
+            <Image source={deleteIcon} style={{ width: 20, height: 20 }} />
+          </TouchableOpacity>
         </View>
       </View>
-      <View style={styles.actionIcons}>
-        <TouchableOpacity style={styles.iconButton}>
-          <Image source={editIcon} style={{ width: 20, height: 20 }} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.iconButton, styles.deleteBtn]}
-          onPress={() => handleDeletePress(item)}
-        >
-          <Image source={deleteIcon} style={{ width: 20, height: 20 }} />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -114,23 +116,34 @@ const TeamManagementScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* My Teams */}
+      {/* Top Row */}
       <View style={styles.topRow}>
         <Text style={styles.sectionTitle}>My Teams</Text>
-        <TouchableOpacity style={styles.newTeamButton}>
+        <TouchableOpacity
+          style={styles.newTeamButton}
+          onPress={() => navigation.navigate("AddTeamScreen")}
+        >
           <Image source={plusIcon} style={styles.plusIcon} />
           <Text style={styles.newTeamText}>New Team</Text>
         </TouchableOpacity>
       </View>
 
       {/* List */}
-      <FlatList
-        data={teams}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color={Colors.primary} />
+      ) : teams.length > 0 ? (
+        <FlatList
+          data={teams}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+          onRefresh={fetchTeamsList}
+          refreshing={loading}
+        />
+      ) : (
+        <Text style={styles.noTeamText}>No teams available</Text>
+      )}
 
       {/* Delete Confirmation Modal */}
       <Modal
@@ -139,14 +152,16 @@ const TeamManagementScreen = ({ navigation }) => {
         animationType="fade"
         onRequestClose={() => setShowDeleteModal(false)}
       >
-        {/*  Background Blur */}
         <BlurView intensity={10} tint="dark" style={styles.blurOverlay}>
           <View style={styles.modalContent}>
-            <Image source={deleteIcon} style={styles.deleteText} />
+            <Image source={deleteIcon} style={styles.deleteIcon} />
             <Text style={styles.modalTitle}>Delete Team</Text>
             <Text style={styles.modalMessage}>
-              Are you sure you want to delete Chelsea{" "}
-              {/* <Text style={{ fontWeight: "600" }}>{selectedTeam?.name}</Text>? */}
+              Are you sure you want to delete{" "}
+              <Text style={{ fontWeight: "700" }}>
+                {selectedTeam?.name || ""}
+              </Text>
+              ?
             </Text>
 
             <View style={styles.modalButtons}>
@@ -171,6 +186,8 @@ const TeamManagementScreen = ({ navigation }) => {
   );
 };
 
+export default TeamManagementScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -178,24 +195,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingTop: 60,
   },
-  deleteText: {
-    marginBottom: 80,
-  },
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 24,
   },
-  headerTitle: { fontSize: 18, fontWeight: "600" },
-  profileImage: { width: 32, height: 32, borderRadius: 16 },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  profileImage: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
   topRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
   },
-  sectionTitle: { fontSize: 20, fontWeight: "700" },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+  },
   newTeamButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -204,9 +228,25 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 8,
   },
-  plusIcon: { width: 14, height: 14, marginRight: 6 },
-  newTeamText: { color: Colors.primary, fontWeight: "600", fontSize: 14 },
-  listContainer: { paddingBottom: 40 },
+  plusIcon: {
+    width: 14,
+    height: 14,
+    marginRight: 6,
+  },
+  newTeamText: {
+    color: Colors.primary,
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  listContainer: {
+    paddingBottom: 40,
+  },
+  noTeamText: {
+    textAlign: "center",
+    color: "#999",
+    marginTop: 50,
+    fontSize: 16,
+  },
   teamCard: {
     backgroundColor: "#F9F9F9",
     borderRadius: 12,
@@ -216,55 +256,68 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
   },
-  teamInfo: { flexDirection: "row", alignItems: "center" },
-  teamLogo: { width: 46, height: 46, borderRadius: 23, marginRight: 12 },
-  teamName: { fontSize: 16, fontWeight: "600" },
-  teamType: { fontSize: 13, color: "#777" },
-  actionIcons: { flexDirection: "row" },
+  teamInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  teamLogo: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    marginRight: 12,
+  },
+  teamName: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  teamType: {
+    fontSize: 13,
+    color: "#777",
+  },
+  actionIcons: {
+    flexDirection: "row",
+  },
   iconButton: {
     backgroundColor: "#ECECEC",
     borderRadius: 8,
     padding: 8,
     marginLeft: 8,
   },
-  deleteBtn: { backgroundColor: "#FFEAEA" },
-
-  // Blur background overlay
+  deleteBtn: {
+    backgroundColor: "#FFEAEA",
+  },
   blurOverlay: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-
-  // Modal content
   modalContent: {
     backgroundColor: "#fff",
     width: "80%",
     borderRadius: 12,
     padding: 20,
     alignItems: "center",
-    
-    
+  },
+  deleteIcon: {
+    width: 40,
+    height: 40,
+    marginBottom: 10,
   },
   modalTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "700",
-    marginBottom: 3,
-    marginTop: 16,
+    marginBottom: 10,
   },
   modalMessage: {
     fontSize: 14,
     color: "#555",
     textAlign: "center",
     marginBottom: 20,
-    fontfamily: "Kumbh Sans",
-    width:210,
   },
   modalButtons: {
     flexDirection: "row",
-    // justifyContent: "space-between",
     width: "100%",
-    gap:10,
+    gap: 10,
   },
   modalBtn: {
     flex: 1,
@@ -272,10 +325,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
   },
-  cancelBtn: { backgroundColor: "#F8F8F8", marginRight: 10, color:"#B3B3B3"},
-  deleteConfirmBtn: { backgroundColor: "#DD0000" },
-  cancelText: { color: "#333", fontWeight: "600" , padding:5,},
-  deleteText: { color: "#FFF", fontWeight: "600", padding:5, },
+  cancelBtn: {
+    backgroundColor: "#F8F8F8",
+  },
+  deleteConfirmBtn: {
+    backgroundColor: "#DD0000",
+  },
+  cancelText: {
+    color: "#333",
+    fontWeight: "600",
+  },
+  deleteText: {
+    color: "#FFF",
+    fontWeight: "600",
+  },
 });
-
-export default TeamManagementScreen;

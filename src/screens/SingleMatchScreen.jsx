@@ -122,7 +122,6 @@ const SingleMatchScreen = ({ navigation }) => {
       {/* Team B Box */}
       <View style={styles.teamBox}>
         <View style={styles.teamInfo}>
-          {/* <Image source={{ uri: teamBLogo }} style={styles.teamLogo} /> */}
           <Image
             source={teamBLogo ? { uri: teamBLogo } : defaultLogo}
             style={styles.teamLogo}
@@ -137,7 +136,10 @@ const SingleMatchScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
       <TouchableOpacity>
-        <Text style={styles.manage} onPress={() => navigation.navigate("TeamManagementScreen")}>
+        <Text
+          style={styles.manage}
+          onPress={() => navigation.navigate("TeamManagementScreen")}
+        >
           Manage your Teams
         </Text>
       </TouchableOpacity>
@@ -227,13 +229,12 @@ const styles = StyleSheet.create({
     paddingTop: 80,
     padding: 20,
   },
-  manage:{
-fontSize:16,
-color:"#068EFF",
-  fontWeight: "700",
-  fontStyle:"normal",
-  marginTop:20,
-
+  manage: {
+    fontSize: 16,
+    color: "#068EFF",
+    fontWeight: "700",
+    fontStyle: "normal",
+    marginTop: 20,
   },
   backButton: {
     position: "absolute",
@@ -316,7 +317,7 @@ color:"#068EFF",
   footerButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: "90%%",
+    width: "90%",
     marginTop: 288,
   },
   modalOverlay: {

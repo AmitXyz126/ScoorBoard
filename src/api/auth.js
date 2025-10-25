@@ -56,6 +56,20 @@ export const getTeams = async () => {
   }
 };
 
+// Get Teams List
+export const getTeamsDetails = async (teamId, userToken) => {
+  try {
+    const response = await axios.get(ENDPOINTS.UPDATE_TEAM(teamId), {
+      headers: {
+        Authorization: `Bearer ${userToken}`,
+      },
+    });
+    return response.data;
+  } catch (err) {
+    console.error("Upload Logo Error:", err.response?.data || err.message);
+  }
+};
+
 // Upload Logo
 export const uploadLogo = async (file, userToken) => {
   console.log("Selected file:", file);
@@ -63,15 +77,47 @@ export const uploadLogo = async (file, userToken) => {
   try {
     const formData = new FormData();
     formData.append("files", file);
-    const response = await axios.post( ENDPOINTS.UPLOAD_LOGO, formData, {
+    const response = await axios.post(ENDPOINTS.UPLOAD_LOGO, formData, {
       headers: {
         Authorization: `Bearer ${userToken}`,
       },
     });
-x``
     return response.data;
   } catch (error) {
     console.error("Upload Logo Error:", error.response?.data || error.message);
     throw error.response?.data || { message: "Logo upload failed" };
+  }
+};
+
+// DELETE_TEAM
+export const deleteTeam = async (id) => {
+  try {
+    const response = await axios.delete(ENDPOINTS.DELETE_TEAM(id));
+    console.log("Team deleted successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Delete Team Error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// updateTeam
+
+export const updateTeam = async (teamId, data, token) => {
+  try {
+    const response = await axios.put(ENDPOINTS.UPDATE_TEAM(teamId), data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    return response.data; 
+  } catch (error) {
+    console.error(
+      "Update Team API Error:",
+      error.response?.data || error.message
+    );
+    throw error;
   }
 };

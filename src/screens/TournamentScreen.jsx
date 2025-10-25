@@ -27,7 +27,6 @@ const TournamentScreen = ({ navigation }) => {
   const [teamB, setTeamB] = useState({});
   const [visibleModal, setVisibleModal] = useState(null);
 
-  
   const fetchTeams = async () => {
     try {
       setLoading(true);
@@ -114,6 +113,14 @@ const TournamentScreen = ({ navigation }) => {
           <Image source={downArrow} style={styles.downArrow} />
         </TouchableOpacity>
       </View>
+      <TouchableOpacity>
+        <Text
+          style={styles.manage}
+          onPress={() => navigation.navigate("TeamManagementScreen")}
+        >
+          Manage your Teams
+        </Text>
+      </TouchableOpacity>
 
       {/* FOOTER */}
       <View style={styles.footerButtons}>
@@ -224,6 +231,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 15,
     marginTop: 15,
+  },
+  manage: {
+    fontSize: 16,
+    color: "#068EFF",
+    fontWeight: "700",
+    fontStyle: "normal",
+    marginTop: 20,
   },
   teamLogo: {
     width: 50,

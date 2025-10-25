@@ -7,4 +7,6 @@ export const ENDPOINTS = {
   CREATE_TEAM: `${BASE_URL}/api/teams`,
   GET_TEAMS: `${BASE_URL}/api/teams`,
   UPLOAD_LOGO: `${BASE_URL}/api/upload`,
+  DELETE_TEAM: (id) => `${BASE_URL}/api/teams/${id}`,
+  UPDATE_TEAM: (id) => `${BASE_URL}/api/teams/${id}`,
 };
