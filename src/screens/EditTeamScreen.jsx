@@ -31,7 +31,6 @@ const EditTeamScreen = ({ navigation, route }) => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
-  //  Fetch team details
   useEffect(() => {
     async function fetchData() {
       try {
@@ -76,7 +75,6 @@ const EditTeamScreen = ({ navigation, route }) => {
     fetchData();
   }, [teamId]);
 
-  //  Pick Image
   const handlePickImage = async () => {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -93,14 +91,13 @@ const EditTeamScreen = ({ navigation, route }) => {
     if (pickerResult.canceled) return;
 
     const asset = pickerResult.assets[0];
-    //  For web compatibility add file
+
     setTeamLogo({
       uri: asset.uri,
       file: asset.file || null,
     });
   };
 
-  //  Save / Update Team
   const handleSave = async () => {
     if (!teamName || !country) {
       alert("Please fill all fields!");
@@ -113,7 +110,6 @@ const EditTeamScreen = ({ navigation, route }) => {
       const token = await AsyncStorage.getItem("userToken");
       let logoId = team?.logoId || null;
 
-      //  Check if logo changed
       const isLogoChanged = teamLogo?.uri && teamLogo.uri !== originalLogoUrl;
 
       if (isLogoChanged) {
@@ -130,7 +126,6 @@ const EditTeamScreen = ({ navigation, route }) => {
           type,
         };
 
-        
         const uploadRes = await uploadLogo(
           Platform.OS === "ios" ? fileToUpload : teamLogo.file || fileToUpload,
           token
@@ -142,12 +137,17 @@ const EditTeamScreen = ({ navigation, route }) => {
         console.log("⚡ Logo not changed — skipping upload.");
       }
 
-      //  Update team API
-      await updateTeam(
-        teamId,
-        { name: teamName, country, logo: logoId },
-        token
-      );
+      // ✅ FIX — LOGO sirf tab bhejo jab change hua ho
+      const updateData = {
+        name: teamName,
+        country,
+      };
+
+      if (isLogoChanged) {
+        updateData.logo = logoId;
+      }
+
+      await updateTeam(teamId, updateData, token);
 
       alert("Team updated successfully!");
       navigation.goBack();
@@ -159,7 +159,6 @@ const EditTeamScreen = ({ navigation, route }) => {
     }
   };
 
-  //  Loader
   if (fetching) {
     return (
       <View style={styles.loaderContainer}>
