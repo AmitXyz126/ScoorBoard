@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,17 +8,18 @@ import {
   Modal,
   FlatList,
   ActivityIndicator,
+  Alert,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "../contants/Colors";
 import GradientButton from "../gradientButton/GradientButton";
 import GradientText from "../gradientText/GradientText";
 import backIcon from "../../assets/backIcon.png";
 import downArrow from "../../assets/downArrow.png";
 import plusIcon from "../../assets/plus.png";
-
-import { useFocusEffect } from "@react-navigation/native";
-import { getTeams } from "../api/auth";
 import defaultLogo from "../../assets/userss.png";
+import { useFocusEffect } from "@react-navigation/native";
+import { getTeams, createMatch } from "../api/auth";
 
 const SingleMatchScreen = ({ navigation }) => {
   const [teamsList, setTeamsList] = useState([]);
@@ -26,21 +27,23 @@ const SingleMatchScreen = ({ navigation }) => {
   const [teamA, setTeamA] = useState({});
   const [teamB, setTeamB] = useState({});
   const [visibleModal, setVisibleModal] = useState(null);
+  const [starting, setStarting] = useState(false);
 
-  //  Fetch teams from API
+  //  Fetch teams
   const fetchTeams = async () => {
     try {
       setLoading(true);
       const response = await getTeams();
-      // console.log("Fetched Teams:", response);
       setTeamsList(response || []);
     } catch (error) {
-      console.error("Error fetching teams:", error);
+      console.error(" Error fetching teams:", error);
+      Alert.alert("Error", "Failed to fetch teams. Try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  //  Fetch teams on screen focus
   useFocusEffect(
     useCallback(() => {
       fetchTeams();
@@ -48,38 +51,71 @@ const SingleMatchScreen = ({ navigation }) => {
   );
 
   const handleSelectTeam = (team) => {
-    // console.log(team, "team");
     if (visibleModal === "A") setTeamA(team);
     else if (visibleModal === "B") setTeamB(team);
     setVisibleModal(null);
   };
 
-  const teamALogo = teamA?.logo
-    ? `${process.env.EXPO_PUBLIC_API_URL}${
-        teamA.logo.formats
-          ? teamA.logo.formats.thumbnail
-            ? teamA.logo.formats.thumbnail.url
-            : teamA.logo.formats?.small?.url
-          : teamA.logo.url
-      }`
-    : null;
+  //  Logo URL builder
+  const getTeamLogo = (team) => {
+    if (!team?.logo) return null;
+    const base = process.env.EXPO_PUBLIC_API_URL;
+    const logoData = team.logo;
+    if (logoData?.formats?.thumbnail?.url)
+      return `${base}${logoData.formats.thumbnail.url}`;
+    if (logoData?.formats?.small?.url)
+      return `${base}${logoData.formats.small.url}`;
+    return `${base}${logoData.url}`;
+  };
 
-  console.log("teamALogo", teamALogo);
+  const teamALogo = getTeamLogo(teamA);
+  const teamBLogo = getTeamLogo(teamB);
 
-  const teamBLogo = teamB?.logo
-    ? `${process.env.EXPO_PUBLIC_API_URL}${
-        teamB.logo.formats
-          ? teamB.logo.formats.thumbnail
-            ? teamB.logo.formats.thumbnail.url
-            : teamB.logo.formats?.small?.url
-          : teamB.logo.url
-      }`
-    : null;
+  // Handle Start Match
+  const handleStartMatch = async () => {
+    if (!teamA?.id || !teamB?.id) {
+      Alert.alert("Error", "Please select both Team A and Team B!");
+      return;
+    }
 
-  console.log("teamBLogoB", teamBLogo);
+    try {
+      setStarting(true);
+      const userToken = await AsyncStorage.getItem("userToken");
+      if (!userToken) {
+        Alert.alert("Error", "No user token found. Please login again.");
+        setStarting(false);
+        return;
+      }
+
+      const matchData = {
+        teamA: teamA.id,
+        teamB: teamB.id,
+      };
+
+      console.log("Match Data Sent:", matchData);
+      const response = await createMatch(matchData, userToken);
+      console.log(" Match Created:", response);
+
+      Alert.alert("Success", "Match started successfully!");
+      navigation.navigate("HomeEditScore", { teamA, teamB, match: response });
+      
+    } catch (error) {
+      console.error(
+        " Start Match Error:",
+        error.response?.data || error.message
+      );
+      Alert.alert(
+        "Error",
+        error.response?.data?.error?.message || "Failed to start match"
+      );
+    } finally {
+      setStarting(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
+      {/* Back */}
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
@@ -89,15 +125,13 @@ const SingleMatchScreen = ({ navigation }) => {
 
       <Text style={styles.title}>Start Match</Text>
 
-      {/* Team A Box */}
+      {/*  Team A */}
       <View style={styles.teamBox}>
         <View style={styles.teamInfo}>
-          {/* <Image source={{ uri: teamALogo }} style={styles.teamLogo} /> */}
           <Image
             source={teamALogo ? { uri: teamALogo } : defaultLogo}
             style={styles.teamLogo}
           />
-
           <View>
             <Text style={styles.teamName}>{teamA.name || "Select Team A"}</Text>
             <Text style={styles.teamSub}>Team A</Text>
@@ -119,7 +153,7 @@ const SingleMatchScreen = ({ navigation }) => {
         }}
       />
 
-      {/* Team B Box */}
+      {/* team B */}
       <View style={styles.teamBox}>
         <View style={styles.teamInfo}>
           <Image
@@ -135,23 +169,21 @@ const SingleMatchScreen = ({ navigation }) => {
           <Image source={downArrow} style={styles.downArrow} />
         </TouchableOpacity>
       </View>
-      <TouchableOpacity>
-        <Text
-          style={styles.manage}
-          onPress={() => navigation.navigate("TeamManagementScreen")}
-        >
-          Manage your Teams
-        </Text>
+
+      <TouchableOpacity
+        onPress={() => navigation.navigate("TeamManagementScreen")}
+      >
+        <Text style={styles.manage}>Manage your Teams</Text>
       </TouchableOpacity>
 
-      {/* Footer Buttons */}
+      {/*   Footer Buttons */}
       <View style={styles.footerButtons}>
         <GradientButton
-          title="Start Match"
-          onPress={() => navigation.navigate("")}
+          title={starting ? "Starting..." : "Start Match"}
+          onPress={handleStartMatch}
+          disabled={starting}
           style={styles.gradientBtn}
         />
-
         <TouchableOpacity
           style={styles.newTeamButton}
           onPress={() => navigation.navigate("AddTeamScreen")}
@@ -164,12 +196,11 @@ const SingleMatchScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Modal for Selecting Team */}
+      {/* 🧾 Modal for Teams */}
       <Modal transparent visible={!!visibleModal} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select Team</Text>
-
             {loading ? (
               <ActivityIndicator size="large" color={Colors.primary} />
             ) : (
@@ -181,7 +212,6 @@ const SingleMatchScreen = ({ navigation }) => {
                   const isDisabled =
                     (visibleModal === "A" && teamName === teamB.name) ||
                     (visibleModal === "B" && teamName === teamA.name);
-
                   return (
                     <TouchableOpacity
                       disabled={isDisabled}
@@ -207,7 +237,6 @@ const SingleMatchScreen = ({ navigation }) => {
                 }}
               />
             )}
-
             <TouchableOpacity
               onPress={() => setVisibleModal(null)}
               style={styles.closeButton}
@@ -229,28 +258,10 @@ const styles = StyleSheet.create({
     paddingTop: 80,
     padding: 20,
   },
-  manage: {
-    fontSize: 16,
-    color: "#068EFF",
-    fontWeight: "700",
-    fontStyle: "normal",
-    marginTop: 20,
-  },
-  backButton: {
-    position: "absolute",
-    top: 60,
-    left: 20,
-  },
-  backIcon: {
-    width: 24,
-    height: 24,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 40,
-    marginTop: 24,
-  },
+  manage: { fontSize: 16, color: "#068EFF", fontWeight: "700", marginTop: 20 },
+  backButton: { position: "absolute", top: 60, left: 20 },
+  backIcon: { width: 24, height: 24 },
+  title: { fontSize: 22, fontWeight: "700", marginBottom: 40, marginTop: 24 },
   teamBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -262,28 +273,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 16,
   },
-  teamInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  teamLogo: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 15,
-  },
-  teamName: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  teamSub: {
-    fontSize: 14,
-    color: "#777",
-  },
-  gradientBtn: {
-    flex: 1,
-    marginRight: 10,
-  },
+  teamInfo: { flexDirection: "row", alignItems: "center" },
+  teamLogo: { width: 50, height: 50, borderRadius: 25, marginRight: 15 },
+  teamName: { fontSize: 18, fontWeight: "600" },
+  teamSub: { fontSize: 14, color: "#777" },
+  gradientBtn: { flex: 1, marginRight: 10 },
   newTeamButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -291,29 +285,9 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
     borderRadius: 8,
     paddingHorizontal: 28,
-    // paddingVertical: 0,
   },
-  newTeamText: {
-    color: Colors.primary,
-    fontWeight: "600",
-    marginLeft: 4,
-    fontSize: 16,
-  },
-  downArrow: {
-    width: 32,
-    height: 32,
-    borderRadius: 5,
-    backgroundColor: "#FFF",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 6,
-    flexShrink: 0,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
-  },
+  newTeamText: { color: Colors.primary, fontWeight: "600", fontSize: 16 },
+  downArrow: { width: 32, height: 32 },
   footerButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -343,19 +317,9 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ddd",
     borderBottomWidth: 1,
   },
-  teamItemText: {
-    fontSize: 16,
-    textAlign: "center",
-  },
-  closeButton: {
-    marginTop: 15,
-    alignItems: "center",
-  },
-  closeText: {
-    color: Colors.primary || "#007BFF",
-    fontWeight: "600",
-    fontSize: 16,
-  },
+  teamItemText: { fontSize: 16, textAlign: "center" },
+  closeButton: { marginTop: 15, alignItems: "center" },
+  closeText: { color: Colors.primary, fontWeight: "600", fontSize: 16 },
 });
 
 export default SingleMatchScreen;

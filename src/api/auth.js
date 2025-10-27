@@ -56,7 +56,7 @@ export const getTeams = async () => {
   }
 };
 
-// Get Teams List
+// Get Teams List by id
 export const getTeamsDetails = async (teamId, userToken) => {
   try {
     const response = await axios.get(ENDPOINTS.UPDATE_TEAM(teamId), {
@@ -112,7 +112,7 @@ export const updateTeam = async (teamId, data, token) => {
       },
     });
 
-    return response.data; 
+    return response.data;
   } catch (error) {
     console.error(
       "Update Team API Error:",
@@ -121,3 +121,91 @@ export const updateTeam = async (teamId, data, token) => {
     throw error;
   }
 };
+
+// Create Match
+export const createMatch = async (data, token) => {
+  try {
+    const response = await axios.post(ENDPOINTS.CREATE_MATCH, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Create Match API Error:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+};
+
+//  Update Score
+export const updateScore = async (matchId, data, token) => {
+  try {
+    const response = await axios.put(ENDPOINTS.UPDATE_SCORE(matchId), data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    console.log(" Score updated:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Update Score API Error:",
+      error.response?.data || error.message
+    );
+    throw error.response?.data || { message: "Failed to update score" };
+  }
+};
+
+
+// End Match API
+export const endMatch = async (matchId, token) => {
+  try {
+    const response = await axios.post(
+      ENDPOINTS.END_MATCH(matchId),
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log(" Match ended successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error(
+      " End Match API Error:",
+      error.response?.data || error.message
+    );
+    throw error.response?.data || { message: "Failed to end match" };
+  }
+};
+
+
+// // ✅ Get Match by Code
+// export const getMatchByCode = async (code, token) => {
+//   try {
+//     const response = await axios.get(ENDPOINTS.GET_MATCH_BY_CODE(code), {
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//         "Content-Type": "application/json",
+//       },
+//     });
+
+//     console.log(" Match Found:", response.data);
+//     return response.data;
+//   } catch (error) {
+//     console.error(
+//       " Get Match By Code API Error:",
+//       error.response?.data || error.message
+//     );
+//     throw error.response?.data || { message: "Failed to fetch match by code" };
+//   }
+// };
+

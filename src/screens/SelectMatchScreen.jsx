@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import Colors from "../contants/Colors";
-// import { Ionicons } from "@expo/vector-icons";
 import backIcon from "../../assets/backIcon.png";
 
 const SelectMatchScreen = ({ navigation }) => {
-  const [selectedType, setSelectedType] = useState(null);
+ 
+  const [selectedType, setSelectedType] = useState("single");
 
   const handleNext = () => {
     if (!selectedType) {
@@ -26,8 +26,7 @@ const SelectMatchScreen = ({ navigation }) => {
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
-        {/* Back arrow */}
-        <Image source={backIcon} style={styles.backArrow}></Image>
+        <Image source={backIcon} style={styles.backArrow} />
       </TouchableOpacity>
 
       {/* Progress */}
@@ -83,7 +82,6 @@ const styles = StyleSheet.create({
     left: 20,
     zIndex: 10,
   },
-
   backArrow: {
     width: 24,
     height: 24,

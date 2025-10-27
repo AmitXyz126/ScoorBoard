@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   },
   progressActive: {
     height: 4,
-    width: 157,
+    width: 167,
     backgroundColor: "#3F8CFF",
     borderRadius: 5,
     marginHorizontal: 5,
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   footer: {
-    marginTop: 180,
+    marginTop: 220,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
