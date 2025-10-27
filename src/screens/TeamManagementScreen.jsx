@@ -39,7 +39,7 @@ const TeamManagementScreen = ({ navigation }) => {
   useEffect(() => {
     fetchTeamsList();
   }, []);
- 
+
   const confirmDelete = async () => {
     if (!selectedTeam?.id) return;
 
@@ -80,11 +80,10 @@ const TeamManagementScreen = ({ navigation }) => {
         <View style={styles.actionIcons}>
           <TouchableOpacity
             style={styles.iconButton}
-            onPress={() =>{
-              navigation.navigate("EditTeamScreen", { teamId: item.id })
-              console.log(item.id, "itemID")}
-            }
-            
+            onPress={() => {
+              navigation.navigate("EditTeamScreen", { teamId: item.id });
+              console.log(item.id, "itemID");
+            }}
           >
             <Image source={editIcon} style={{ width: 20, height: 20 }} />
           </TouchableOpacity>
@@ -202,8 +201,12 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
+    color: "#212121",
+    fontFamily: "Kumbh Sans",
+    fontSize: 24,
+    fontStyle: "normal",
+    fontWeight: "700",
+    lineHeight: 33.6,
   },
   profileImage: {
     width: 32,
@@ -229,14 +232,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   plusIcon: {
-    width: 14,
-    height: 14,
+    width: 19,
+    height: 19,
     marginRight: 6,
   },
   newTeamText: {
     color: Colors.primary,
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: 19,
   },
   listContainer: {
     paddingBottom: 40,

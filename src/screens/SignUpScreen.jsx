@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   backgroundTop: {
     position: "absolute",
     top: -231,
-    left: 210,
+    left: 215,
     width: "50%",
     height: "100%",
     resizeMode: "contain",

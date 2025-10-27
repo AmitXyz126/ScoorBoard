@@ -9,4 +9,11 @@ export const ENDPOINTS = {
   UPLOAD_LOGO: `${BASE_URL}/api/upload`,
   DELETE_TEAM: (id) => `${BASE_URL}/api/teams/${id}`,
   UPDATE_TEAM: (id) => `${BASE_URL}/api/teams/${id}`,
+  //  Create Match
+  CREATE_MATCH: `${BASE_URL}/api/matches/create-and-start`,
+  UPDATE_SCORE: (matchId) => `${BASE_URL}/api/matches/${matchId}/score`,
+  END_MATCH: (matchId) => `${BASE_URL}/api/matches/${matchId}/end`,
+  //   //  Get Match by Code
+  // GET_MATCH_BY_CODE: (code) => `${BASE_URL}/api/matches/code/${code}`,
+
 };
