@@ -113,8 +113,8 @@ const AddTeamScreen = ({ navigation }) => {
           onPress={() => navigation.goBack()}
         >
           <Image source={backIcon} style={styles.backArrow} />
-        </TouchableOpacity>
 
+        </TouchableOpacity>
         <Text style={styles.title}>Add New Team</Text>
 
         <TouchableOpacity style={styles.imageUpload} onPress={handlePickImage}>
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
   },
-  backButton: { position: "absolute", top: 60, left: 20 },
+  backButton: { position: "absolute", top: 81, left: 20 },
   backArrow: { width: 24, height: 24 },
   title: { fontSize: 20, fontWeight: "700", marginBottom: 40 },
   imageUpload: {
@@ -208,15 +208,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 30,
     position: "relative",
-    overflow: "hidden",
+    // overflow: "hidden",
   },
   imageIcon: {
     position: "absolute",
     bottom: 8,
-    right: 8,
+    right: 4,
     backgroundColor: Colors.primary,
     borderRadius: 15,
     padding: 4,
+    
   },
   saveText: {
     color: "#fff",
@@ -224,7 +225,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     height: 48,
     borderRadius: 10,
-    marginTop: 30,
+    marginTop: 320,
     alignSelf: "stretch",
     justifyContent: "center",
   },

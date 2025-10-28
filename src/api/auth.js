@@ -187,8 +187,7 @@ export const endMatch = async (matchId, token) => {
   }
 };
 
-
-// // ✅ Get Match by Code
+// //  Get Match by Code
 // export const getMatchByCode = async (code, token) => {
 //   try {
 //     const response = await axios.get(ENDPOINTS.GET_MATCH_BY_CODE(code), {

@@ -45,8 +45,8 @@ const ViewLogin = ({ navigation }) => {
         </View>
         <Image source={bluevector} style={styles.logo} />
         <Text style={styles.title}>SportSynz</Text>
-        <Text style={styles.inputLabel}>Email Address</Text>
-        <CustomInput value={email} onChangeText={setEmail} />
+        {/* <Text style={styles.inputLabel}>Email Address</Text>
+        <CustomInput value={email} onChangeText={setEmail} /> */}
         <Text style={styles.inputLabel}>Match ID</Text>
         <CustomInput value={email} onChangeText={setEmail} />
         <GradientButton
