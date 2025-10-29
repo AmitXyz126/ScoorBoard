@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Linking,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,6 +18,8 @@ import GradientText from "../gradientText/GradientText";
 import copy from "../../assets/copy.png";
 import defaultLogo from "../../assets/userss.png";
 import { endMatch, updateScore } from "../api/auth";
+import Modal from "react-native-modal";
+import * as Clipboard from "expo-clipboard";
 
 const HomeEditScore = ({ navigation, route }) => {
   const { teamA, teamB, match } = route.params || {};
@@ -24,8 +27,8 @@ const HomeEditScore = ({ navigation, route }) => {
   const [homeScore, setHomeScore] = useState(0);
   const [awayScore, setAwayScore] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [isShareVisible, setIsShareVisible] = useState(false);
 
-  //  Get team logo
   const getTeamLogo = (team) => {
     if (!team?.logo) return null;
     const base = process.env.EXPO_PUBLIC_API_URL;
@@ -37,17 +40,9 @@ const HomeEditScore = ({ navigation, route }) => {
     return `${base}${logoData.url}`;
   };
 
-  //  Update Score API
   const handleUpdateScore = async (newHomeScore, newAwayScore) => {
-    console.log(" handleUpdateScore called with:", {
-      newHomeScore,
-      newAwayScore,
-      matchId: match?.match.match_code,
-    });
-
     try {
       const token = await AsyncStorage.getItem("userToken");
-      console.log(" Token from storage:", token);
 
       if (!match?.match?.id) {
         Alert.alert("Error", "Match ID not found");
@@ -59,72 +54,79 @@ const HomeEditScore = ({ navigation, route }) => {
         scoreB: newAwayScore,
       };
 
-      console.log(" Sending payload to API:", payload);
       setLoading(true);
-
       const res = await updateScore(match?.match?.id, payload, token);
-      console.log("API response received:", res);
-
       setLoading(false);
+      console.log("API response:", res);
     } catch (error) {
-      console.log(" API error:", error);
+      console.log("API error:", error);
       setLoading(false);
     }
   };
 
   const handleEndMatch = async () => {
-      // console.log(" handleEndMatch called");
     try {
       const token = await AsyncStorage.getItem("userToken");
-
       const matchId = match?.match?.id;
-            // console.log(" Match ID:", matchId);
 
       if (!matchId) {
-        console.log("Match ID not found, stopping execution");
         Alert.alert("Error", "Match ID not found");
         return;
       }
 
-      const res = await endMatch(match?.match?.id, token);
-      console.log(" Match End Response:", res);
+      const res = await endMatch(matchId, token);
+      console.log("Match End Response:", res);
       Alert.alert("Success", "Match ended successfully!");
       navigation.goBack();
     } catch (error) {
-      console.log(" End Match Error:", error);
+      console.log("End Match Error:", error);
       Alert.alert("Error", error?.message || "Failed to end match");
     }
   };
-  // console.log(match.match.match_code,"match ff id")
 
-  //  Home team controls
   const increaseHome = async () => {
-    console.log(" increaseHome pressed");
     const newScore = homeScore + 1;
     setHomeScore(newScore);
     await handleUpdateScore(newScore, awayScore);
   };
 
   const decreaseHome = async () => {
-    console.log(" decreaseHome pressed");
     const newScore = homeScore > 0 ? homeScore - 1 : 0;
     setHomeScore(newScore);
     await handleUpdateScore(newScore, awayScore);
   };
 
-  //  Away team controls
   const increaseAway = async () => {
-    console.log(" increaseAway pressed");
     const newScore = awayScore + 1;
     setAwayScore(newScore);
     await handleUpdateScore(homeScore, newScore);
   };
 
   const decreaseAway = async () => {
-    console.log(" decreaseAway pressed");
     const newScore = awayScore > 0 ? awayScore - 1 : 0;
     setAwayScore(newScore);
     await handleUpdateScore(homeScore, newScore);
+  };
+
+  // Bottom Sheet Share Actions
+  const handleShareOption = async (type) => {
+    const matchCode = match?.match?.match_code || "Unknown";
+    const message = `🏏 Match Details 🏆\nMatch ID: ${matchCode}\n${teamA?.name || "Team A"} vs ${teamB?.name || "Team B"}\n\nCheck live: https://scoreboard.xyzdemowebsites.com/match/${matchCode}`;
+
+    if (type === "whatsapp") {
+      const url = `whatsapp://send?text=${encodeURIComponent(message)}`;
+      Linking.openURL(url).catch(() =>
+        Alert.alert("Error", "WhatsApp not installed")
+      );
+    } else if (type === "copy") {
+      await Clipboard.setStringAsync(message);
+      Alert.alert("Copied", "Match link copied to clipboard");
+    } else if (type === "sms") {
+      const url = `sms:?body=${encodeURIComponent(message)}`;
+      Linking.openURL(url);
+    }
+
+    setIsShareVisible(false);
   };
 
   const teamALogo = getTeamLogo(teamA);
@@ -132,29 +134,40 @@ const HomeEditScore = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      {/*  Header */}
+      {/* Header */}
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => navigation.navigate("ViewLogin")}>
           <Image source={sidelogo} style={styles.logo} />
         </TouchableOpacity>
         <Image source={person} style={styles.personIcon} />
       </View>
 
-      {/*  Match Info */}
+      {/* Match Info */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.matchTitle}>Match ID</Text>
-          <View style={styles.copyContainer}>
-            <Text style={styles.matchId}>{match?.match?.match_code}</Text>
+        <View style={styles.copyContainer}>
+          <Text style={styles.matchId}>{match?.match?.match_code}</Text>
+
+          <TouchableOpacity
+            onPress={async () => {
+              try {
+                const matchCode = match?.match?.match_code || "Unknown";
+                await Clipboard.setStringAsync(matchCode);
+                Alert.alert("Copied", "Match code copied");
+              } catch (err) {
+                Alert.alert("Error", "Failed to copy code");
+              }
+            }}
+          >
             <Image source={copy} style={styles.copy} />
-          </View>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={() => Alert.alert("Share", "Coming Soon!")}>
+
+        <TouchableOpacity onPress={() => setIsShareVisible(true)}>
           <Image style={styles.share} source={shareicon} />
         </TouchableOpacity>
       </View>
 
-      {/*  Score Box */}
+      {/* Score Box */}
       <View style={styles.matchBox}>
         {/* Team A */}
         <View style={styles.teamContainer}>
@@ -170,10 +183,14 @@ const HomeEditScore = ({ navigation, route }) => {
           </View>
 
           <View style={styles.scoreControl}>
+            {/* minus button with logic */}
             <TouchableOpacity
-              style={styles.scoreButton}
+              style={[
+                styles.scoreButton,
+                { opacity: homeScore <= 0 ? 0.4 : 1 },
+              ]}
               onPress={decreaseHome}
-              disabled={loading}
+              disabled={homeScore <= 0 || loading}
             >
               <Ionicons name="remove" size={20} color="#3F8CFF" />
             </TouchableOpacity>
@@ -212,10 +229,14 @@ const HomeEditScore = ({ navigation, route }) => {
           </View>
 
           <View style={styles.scoreControl}>
+            {/* minus button with logic */}
             <TouchableOpacity
-              style={styles.scoreButton}
+              style={[
+                styles.scoreButton,
+                { opacity: awayScore <= 0 ? 0.4 : 1 },
+              ]}
               onPress={decreaseAway}
-              disabled={loading}
+              disabled={awayScore <= 0 || loading}
             >
               <Ionicons name="remove" size={20} color="#3F8CFF" />
             </TouchableOpacity>
@@ -235,15 +256,56 @@ const HomeEditScore = ({ navigation, route }) => {
         </View>
       </View>
 
-      {/*  Footer */}
+      {/* Footer */}
       <View style={styles.footer}>
         <GradientButton
           title="Over The Match"
-          // onPress={() => Alert.alert("Match", "Match Over!")}
           onPress={handleEndMatch}
           type="secondary"
         />
       </View>
+
+      {/* Bottom Share Sheet */}
+      <Modal
+        isVisible={isShareVisible}
+        onBackdropPress={() => setIsShareVisible(false)}
+        style={styles.bottomModal}
+      >
+        <View style={styles.modalContent}>
+          <Text style={styles.shareTitle}>Share Match</Text>
+
+          <TouchableOpacity
+            style={styles.option}
+            onPress={() => handleShareOption("whatsapp")}
+          >
+            <Ionicons name="logo-whatsapp" size={22} color="#25D366" />
+            <Text style={styles.optionText}>Share via WhatsApp</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.option}
+            onPress={() => handleShareOption("sms")}
+          >
+            <Ionicons name="chatbox" size={22} color="#3F8CFF" />
+            <Text style={styles.optionText}>Share via SMS</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.option}
+            onPress={() => handleShareOption("copy")}
+          >
+            <Ionicons name="copy" size={22} color="#555" />
+            <Text style={styles.optionText}>Copy Match Link</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.cancelBtn}
+            onPress={() => setIsShareVisible(false)}
+          >
+            <Text style={styles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -276,7 +338,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
   },
-  matchTitle: { fontSize: 16, fontWeight: "600", color: "#000" },
   matchId: { fontSize: 14, color: "#666", marginTop: 3 },
   matchBox: {
     width: "90%",
@@ -312,4 +373,42 @@ const styles = StyleSheet.create({
   scoreButton: { padding: 8 },
   scoreText: { fontSize: 17, fontWeight: "400", color: "#414141" },
   footer: { width: "85%", marginTop: 30 },
+  bottomModal: {
+    justifyContent: "flex-end",
+    margin: 0,
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  shareTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 15,
+  },
+  option: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+  },
+  optionText: {
+    fontSize: 16,
+    color: "#333",
+    marginLeft: 10,
+  },
+  cancelBtn: {
+    marginTop: 10,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  cancelText: {
+    color: "#FF4444",
+    fontSize: 16,
+    fontWeight: "600",
+  },
 });

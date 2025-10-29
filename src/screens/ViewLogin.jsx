@@ -8,6 +8,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import CustomInput from "../components/CustomInput";
 import GradientButton from "../gradientButton/GradientButton";
@@ -15,19 +16,37 @@ import Colors from "../contants/Colors";
 import bluevector from "../../assets/blueVector.png";
 import backgroundLogo from "../../assets/Vectorbg.png";
 import backgroundImg from "../../assets/Vectorbg.png";
+import { getMatchByCode } from "../api/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ViewLogin = ({ navigation }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [matchCode, setMatchCode] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please fill all fields!");
+  const handleGetMatch = async () => {
+    if (!matchCode.trim()) {
+      Alert.alert("Error", "Please enter match code!");
       return;
     }
-    console.log("Email:", email, "Password:", password);
-    Alert.alert("Success", "Login successful!");
-    navigation.replace("Dashboard");
+
+    try {
+      setLoading(true);
+      const token = await AsyncStorage.getItem("token");
+      const matchData = await getMatchByCode(matchCode, token);
+      // console.log("Match data:", matchData);
+
+      if (!matchData) {
+        Alert.alert("Not Found", "No match found for this code!");
+        return;
+      }
+
+      navigation.navigate("FinalScoor", { match: matchData });
+    } catch (error) {
+      console.log("API error:", error);
+      Alert.alert("Error", error?.message || "Failed to fetch match data!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -43,18 +62,31 @@ const ViewLogin = ({ navigation }) => {
           <Image source={backgroundLogo} style={styles.backgroundTop} />
           <Image source={backgroundImg} style={styles.backgroundBottom} />
         </View>
+
         <Image source={bluevector} style={styles.logo} />
         <Text style={styles.title}>SportSynz</Text>
-        {/* <Text style={styles.inputLabel}>Email Address</Text>
-        <CustomInput value={email} onChangeText={setEmail} /> */}
-        <Text style={styles.inputLabel}>Match ID</Text>
-        <CustomInput value={email} onChangeText={setEmail} />
-        <GradientButton
-          onPress={() => navigation.navigate("FinalScoor")}
-          title="Go to Home"
-          style={styles.secondLast}
+
+        <Text style={styles.inputLabel}>Enter Match Code</Text>
+        <CustomInput
+          value={matchCode}
+          onChangeText={setMatchCode}
+          placeholder="Enter match code"
         />
-        {/* onPress={() => alert("Match Over!")} */}
+
+        <GradientButton
+          onPress={handleGetMatch}
+          title={loading ? "Loading..." : "View Match"}
+          style={styles.secondLast}
+          disabled={loading}
+        />
+
+        {/* {loading && (
+          <ActivityIndicator
+            size="large"
+            color={Colors.primary}
+            style={{ marginTop: 20 }}
+          />
+        )} */}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -74,8 +106,6 @@ const styles = StyleSheet.create({
     width: "50%",
     height: "100%",
     resizeMode: "contain",
-    opacity: 1,
-    zIndex: 0,
   },
   backgroundBottom: {
     position: "absolute",
@@ -85,14 +115,11 @@ const styles = StyleSheet.create({
     height: "100%",
     resizeMode: "contain",
     transform: [{ rotate: "176deg" }],
-    opacity: 1,
-    zIndex: 0,
   },
   logo: {
     resizeMode: "contain",
     alignSelf: "center",
     marginBottom: 20,
-    zIndex: 2,
   },
   title: {
     fontSize: 24,
@@ -106,17 +133,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "400",
     marginTop: 10,
-    // marginBottom: 1,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 20,
-    zIndex: 2,
-  },
-  button: {
-    height: 48,
-    borderRadius: 10,
   },
   secondLast: {
     marginTop: 32,

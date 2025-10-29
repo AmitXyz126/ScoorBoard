@@ -13,11 +13,20 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "We need access to your photo library so you can upload pictures.",
+        "NSCameraUsageDescription": "We need access to your camera so you can take pictures."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "permissions": ["INTERNET"],
+        "permissions": [
+          "INTERNET",
+          "READ_EXTERNAL_STORAGE",
+          "WRITE_EXTERNAL_STORAGE",
+          "CAMERA"
+        ],
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
@@ -26,8 +35,6 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-font"
-    ]
+    "plugins": ["expo-font", "expo-image-picker"]
   }
 }

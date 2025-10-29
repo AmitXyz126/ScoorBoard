@@ -187,24 +187,24 @@ export const endMatch = async (matchId, token) => {
   }
 };
 
-// //  Get Match by Code
-// export const getMatchByCode = async (code, token) => {
-//   try {
-//     const response = await axios.get(ENDPOINTS.GET_MATCH_BY_CODE(code), {
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//         "Content-Type": "application/json",
-//       },
-//     });
+//  Get Match by Code
+export const getMatchByCode = async (code, token) => {
+  try {
+    const response = await axios.get(ENDPOINTS.GET_MATCH_BY_CODE(code), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-//     console.log(" Match Found:", response.data);
-//     return response.data;
-//   } catch (error) {
-//     console.error(
-//       " Get Match By Code API Error:",
-//       error.response?.data || error.message
-//     );
-//     throw error.response?.data || { message: "Failed to fetch match by code" };
-//   }
-// };
+    console.log(" Match Found:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error(
+      " Get Match By Code API Error:",
+      error.response?.data || error.message
+    );
+    throw error.response?.data || { message: "Failed to fetch match by code" };
+  }
+};
 

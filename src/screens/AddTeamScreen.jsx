@@ -20,6 +20,7 @@ import CustomInput from "../components/CustomInput";
 import backIcon from "../../assets/backIcon.png";
 import { createTeam, uploadLogo } from "../api/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import tick from "../../assets/tick.png";
 
 const AddTeamScreen = ({ navigation }) => {
   const [teamName, setTeamName] = useState("");
@@ -42,7 +43,6 @@ const AddTeamScreen = ({ navigation }) => {
       quality: 1,
     });
 
-    
     console.log("Picker Result", pickerResult);
 
     if (pickerResult.canceled) return;
@@ -61,7 +61,7 @@ const AddTeamScreen = ({ navigation }) => {
 
       if (teamLogo) {
         // iOS and Android compatible file object
-        console.log("teamLogo", teamLogo.file)
+        console.log("teamLogo", teamLogo.file);
         const localUri = teamLogo.uri;
         const filename = localUri.split("/").pop();
         const match = /\.(\w+)$/.exec(filename);
@@ -73,9 +73,12 @@ const AddTeamScreen = ({ navigation }) => {
           type,
         };
 
-         console.log("fileToUpload", fileToUpload)
+        console.log("fileToUpload", fileToUpload);
 
-        const uploadRes = await uploadLogo(Platform.OS === 'ios' ? fileToUpload : teamLogo.file, storedUserToken);
+        const uploadRes = await uploadLogo(
+          Platform.OS === "ios" ? fileToUpload : teamLogo.file,
+          storedUserToken
+        );
         console.log(uploadRes?.[0].id, "Resp");
 
         const createdTeam = await createTeam({
@@ -113,7 +116,6 @@ const AddTeamScreen = ({ navigation }) => {
           onPress={() => navigation.goBack()}
         >
           <Image source={backIcon} style={styles.backArrow} />
-
         </TouchableOpacity>
         <Text style={styles.title}>Add New Team</Text>
 
@@ -163,12 +165,15 @@ const AddTeamScreen = ({ navigation }) => {
               style={StyleSheet.absoluteFill}
             />
             <View style={styles.modalBox}>
-              <Image
-                source={{
-                  uri: teamLogo?.uri || "https://i.ibb.co/yS6T3DH/team1.png",
-                }}
-                style={styles.modalImg}
-              />
+              <View style={styles.profileIcon}>
+                <Image
+                  source={{
+                    uri: teamLogo?.uri || "https://i.ibb.co/yS6T3DH/team1.png",
+                  }}
+                  style={styles.modalImg}
+                />
+                <Image source={tick} style={styles.tick}></Image>
+              </View>
               <Text style={styles.modalTeam}>{newTeam?.name}</Text>
               <Text style={styles.modalCountry}>{newTeam?.country}</Text>
 
@@ -217,7 +222,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderRadius: 15,
     padding: 4,
-    
   },
   saveText: {
     color: "#fff",
@@ -252,6 +256,17 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     paddingHorizontal: 50,
     paddingVertical: 5,
+  },
+  profileIcon: {
+    position: "relative",
+  },
+  tick: {
+    width: 24,
+    height: 24,
+    position: "absolute",
+    bottom: 12,
+    right: 3
+    ,
   },
 });
 

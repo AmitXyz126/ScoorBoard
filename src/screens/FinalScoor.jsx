@@ -1,12 +1,31 @@
 import React from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
+import GradientText from "../gradientText/GradientText";
 import person from "../../assets/person.png";
 import meet from "../../assets/meet.png";
-import GradientText from "../gradientText/GradientText";
 
-const FinalScoor = () => {
-  const homeScore = 1;
-  const awayScore = 2;
+const BASE_URL = "https://scoreboard.xyzdemowebsites.com";
+
+const FinalScoor = ({ route }) => {
+  const { match } = route.params;
+  const matchData = match?.match;
+
+  const homeTeam = matchData?.teamA?.[0];
+  const awayTeam = matchData?.teamB?.[0];
+
+  const homeTeamName = homeTeam?.name || "Team A";
+  const awayTeamName = awayTeam?.name || "Team B";
+  const homeScore = matchData?.teamA?.[1]?.scoreA ?? 0;
+  const awayScore = matchData?.teamB?.[1]?.scoreB ?? 0;
+
+  //  Handle logo URLs properly
+  const homeLogo = homeTeam?.logo
+    ? { uri: `${BASE_URL}${homeTeam.logo}` }
+    : meet;
+
+  const awayLogo = awayTeam?.logo
+    ? { uri: `${BASE_URL}${awayTeam.logo}` }
+    : person;
 
   return (
     <View style={styles.container}>
@@ -14,19 +33,42 @@ const FinalScoor = () => {
       <View style={styles.header}>
         <View>
           <Text style={styles.matchTitle}>Match ID</Text>
-          <Text style={styles.matchId}>1234 1234 12354</Text>
+          <Text style={styles.matchId}>{matchData?.match_code}</Text>
         </View>
         <Image source={person} style={styles.personIcon} />
+      </View>
+
+      {/* Match status */}
+      <View style={styles.statusContainer}>
+        <Text
+          style={[
+            styles.statusText,
+            {
+              color:
+                matchData?.status === "completed"
+                  ? "#2ecc71"
+                  : matchData?.status === "ongoing"
+                    ? "#f39c12"
+                    : "#888",
+            },
+          ]}
+        >
+          {matchData?.status === "completed"
+            ? "✅ Match Completed"
+            : matchData?.status === "ongoing"
+              ? "🏏 Match Ongoing"
+              : "⏳ Waiting to Start"}
+        </Text>
       </View>
 
       {/* Match Box */}
       <View style={styles.matchBox}>
         {/* Home Team */}
         <View style={styles.teamBlock}>
-          <Image source={meet} style={styles.teamImage} />
+          <Image source={homeLogo} style={styles.teamImage} />
           <View style={styles.teamRow}>
             <View>
-              <Text style={styles.teamName}>Chelsea</Text>
+              <Text style={styles.teamName}>{homeTeamName}</Text>
               <Text style={styles.teamType}>Home</Text>
             </View>
             <Text style={styles.scoreText}>
@@ -35,18 +77,15 @@ const FinalScoor = () => {
           </View>
         </View>
 
-        {/* VS */}
+        {/* VS Divider */}
         <View style={styles.dividerWrapper}>
           <View style={styles.line} />
-
           <GradientText
             text="Vs"
             style={{
               fontSize: 36,
               fontWeight: "700",
-              fontFamily: "Kumbh Sans",
               lineHeight: 40,
-              textTransform: "capitalize",
               padding: 15,
             }}
           />
@@ -55,11 +94,11 @@ const FinalScoor = () => {
 
         {/* Away Team */}
         <View style={styles.teamBlock}>
-          <Image source={person} style={styles.teamImage} />
+          <Image source={awayLogo} style={styles.teamImage} />
           <View style={styles.teamRow}>
             <View>
-              <Text style={styles.teamName}>Melon</Text>
-              <Text style={styles.teamType}>Team B</Text>
+              <Text style={styles.teamName}>{awayTeamName}</Text>
+              <Text style={styles.teamType}>Away</Text>
             </View>
             <Text style={styles.scoreText}>
               {awayScore < 10 ? `0${awayScore}` : awayScore}
@@ -87,16 +126,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
+  statusContainer: {
+    marginBottom: 10,
+    alignItems: "center",
+  },
+  statusText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
   matchTitle: {
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: "500",
-    color: "#666",
+    color: "#000",
   },
   matchId: {
     fontSize: 16,
     fontWeight: "600",
     color: "#000",
     marginTop: 2,
+    opacity: 0.5,
   },
   personIcon: {
     width: 36,
@@ -115,10 +163,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   teamImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 124,
+    height: 124,
+    borderRadius: 75,
     marginBottom: 12,
+    backgroundColor: "#ddd",
   },
   teamRow: {
     width: "100%",
@@ -152,11 +201,5 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 1,
     backgroundColor: "#B3DCFF",
-  },
-  vsText: {
-    marginHorizontal: 20,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#377DFF",
   },
 });

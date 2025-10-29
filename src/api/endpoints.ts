@@ -13,7 +13,7 @@ export const ENDPOINTS = {
   CREATE_MATCH: `${BASE_URL}/api/matches/create-and-start`,
   UPDATE_SCORE: (matchId) => `${BASE_URL}/api/matches/${matchId}/score`,
   END_MATCH: (matchId) => `${BASE_URL}/api/matches/${matchId}/end`,
-  //   //  Get Match by Code
-  // GET_MATCH_BY_CODE: (code) => `${BASE_URL}/api/matches/code/${code}`,
+    //  Get Match by Code
+  GET_MATCH_BY_CODE: (code) => `${BASE_URL}/api/matches/code/${code}`,
 
 };
