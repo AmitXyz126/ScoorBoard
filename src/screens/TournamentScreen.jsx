@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,9 @@ import {
   Modal,
   FlatList,
   ActivityIndicator,
+  Alert,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "../contants/Colors";
 import GradientButton from "../gradientButton/GradientButton";
 import GradientText from "../gradientText/GradientText";
@@ -16,8 +18,7 @@ import backIcon from "../../assets/backIcon.png";
 import plusIcon from "../../assets/plus.png";
 import downArrow from "../../assets/downArrow.png";
 import defaultLogo from "../../assets/userss.png";
-
-import { getTeams } from "../api/auth";
+import { getTeams, createMatch } from "../api/auth";  
 import { useFocusEffect } from "@react-navigation/native";
 
 const TournamentScreen = ({ navigation }) => {
@@ -26,7 +27,9 @@ const TournamentScreen = ({ navigation }) => {
   const [teamA, setTeamA] = useState({});
   const [teamB, setTeamB] = useState({});
   const [visibleModal, setVisibleModal] = useState(null);
+  const [starting, setStarting] = useState(false);  
 
+  // Fetch teams
   const fetchTeams = async () => {
     try {
       setLoading(true);
@@ -34,6 +37,7 @@ const TournamentScreen = ({ navigation }) => {
       setTeamsList(response || []);
     } catch (error) {
       console.error("Error fetching teams:", error);
+      Alert.alert("Error", "Failed to fetch teams. Try again.");
     } finally {
       setLoading(false);
     }
@@ -45,21 +49,69 @@ const TournamentScreen = ({ navigation }) => {
     }, [])
   );
 
-  // Handle selection
   const handleSelectTeam = (team) => {
     if (visibleModal === "A") setTeamA(team);
     else if (visibleModal === "B") setTeamB(team);
     setVisibleModal(null);
   };
 
-  // Prepare logo URLs
-  const teamALogo = teamA?.logo?.formats?.thumbnail?.url
-    ? `${process.env.EXPO_PUBLIC_API_URL}${teamA.logo.formats.thumbnail.url}`
-    : null;
+  // Logo builder (same as SingleMatch)
+  const getTeamLogo = (team) => {
+    if (!team?.logo) return null;
+    const base = process.env.EXPO_PUBLIC_API_URL;
+    const logoData = team.logo;
+    if (logoData?.formats?.thumbnail?.url)
+      return `${base}${logoData.formats.thumbnail.url}`;
+    if (logoData?.formats?.small?.url)
+      return `${base}${logoData.formats.small.url}`;
+    return `${base}${logoData.url}`;
+  };
 
-  const teamBLogo = teamB?.logo?.formats?.thumbnail?.url
-    ? `${process.env.EXPO_PUBLIC_API_URL}${teamB.logo.formats.thumbnail.url}`
-    : null;
+  const teamALogo = getTeamLogo(teamA);
+  const teamBLogo = getTeamLogo(teamB);
+
+  //  Start Match (Tournament)
+  const handleStartMatch = async () => {
+    if (!teamA?.id || !teamB?.id) {
+      Alert.alert("Error", "Please select both Team A and Team B!");
+      return;
+    }
+
+    try {
+      setStarting(true);
+      const userToken = await AsyncStorage.getItem("userToken");
+      if (!userToken) {
+        Alert.alert("Error", "No user token found. Please login again.");
+        setStarting(false);
+        return;
+      }
+
+      const matchData = {
+        teamA: teamA.id,
+        teamB: teamB.id,
+       type: "tournament" ,  
+      };
+
+      console.log("Match Data Sent:", matchData);
+      const response = await createMatch(matchData, userToken);
+      console.log("Tournament Match Created:", response);
+
+      Alert.alert("Success", "Tournament match started successfully!");
+      navigation.navigate("HomeEditScore", { teamA, teamB, match: response });
+    } catch (error) {
+      console.error(
+        "Tournament Start Error:",
+        error.response?.data || error.message
+      );
+      Alert.alert(
+        "Error",
+        error.response?.data?.error?.message ||
+          "Failed to start tournament match"
+      );
+    } finally {
+      setStarting(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -113,22 +165,20 @@ const TournamentScreen = ({ navigation }) => {
           <Image source={downArrow} style={styles.downArrow} />
         </TouchableOpacity>
       </View>
-      <TouchableOpacity>
-        <Text
-          style={styles.manage}
-          onPress={() => navigation.navigate("TeamManagementScreen")}
-        >
-          Manage your Teams
-        </Text>
+
+      <TouchableOpacity
+        onPress={() => navigation.navigate("TeamManagementScreen")}
+      >
+        <Text style={styles.manage}>Manage your Teams</Text>
       </TouchableOpacity>
 
       {/* FOOTER */}
       <View style={styles.footerButtons}>
         <GradientButton
-          title="Start Match"
-          onPress={() => navigation.navigate("HomeEditScore", { teamA, teamB })}
+          title={starting ? "Starting..." : "Start  Match"}
+          onPress={handleStartMatch}
           style={styles.gradientBtn}
-          disabled={!teamA.name || !teamB.name}
+          disabled={starting}
         />
 
         <TouchableOpacity
@@ -143,12 +193,11 @@ const TournamentScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* MODAL for selecting teams */}
+      {/* MODAL */}
       <Modal transparent visible={!!visibleModal} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select Team</Text>
-
             {loading ? (
               <ActivityIndicator size="large" color={Colors.primary} />
             ) : (
@@ -186,7 +235,6 @@ const TournamentScreen = ({ navigation }) => {
                 }}
               />
             )}
-
             <TouchableOpacity
               onPress={() => setVisibleModal(null)}
               style={styles.closeButton}
@@ -207,21 +255,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 80,
   },
-  backButton: {
-    position: "absolute",
-    top: 60,
-    left: 20,
-  },
-  backIcon: {
-    width: 24,
-    height: 24,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 16,
-    marginTop: 26,
-  },
+  backButton: { position: "absolute", top: 60, left: 20 },
+  backIcon: { width: 24, height: 24 },
+  title: { fontSize: 20, fontWeight: "700", marginBottom: 16, marginTop: 26 },
   teamBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -232,19 +268,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     marginTop: 15,
   },
-  manage: {
-    fontSize: 16,
-    color: "#068EFF",
-    fontWeight: "700",
-    fontStyle: "normal",
-    marginTop: 20,
-  },
-  teamLogo: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 15,
-  },
+  manage: { fontSize: 16, color: "#068EFF", fontWeight: "700", marginTop: 20 },
+  teamLogo: { width: 50, height: 50, borderRadius: 25, marginRight: 15 },
   teamInfo: { flex: 1 },
   teamName: { fontSize: 18, fontWeight: "600" },
   teamSub: { fontSize: 14, color: "#777" },
@@ -254,10 +279,7 @@ const styles = StyleSheet.create({
     width: "85%",
     marginTop: 288,
   },
-  gradientBtn: {
-    flex: 1,
-    marginRight: 10,
-  },
+  gradientBtn: { flex: 1, marginRight: 10 },
   newTeamButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -273,21 +295,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontSize: 16,
   },
-  downArrow: {
-    width: 32,
-    height: 32,
-    borderRadius: 5,
-    backgroundColor: "#FFF",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 6,
-    flexShrink: 0,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
-  },
+  downArrow: { width: 32, height: 32 },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",
@@ -311,19 +319,9 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ddd",
     borderBottomWidth: 1,
   },
-  teamItemText: {
-    fontSize: 16,
-    textAlign: "center",
-  },
-  closeButton: {
-    marginTop: 15,
-    alignItems: "center",
-  },
-  closeText: {
-    color: Colors.primary || "#007BFF",
-    fontWeight: "600",
-    fontSize: 16,
-  },
+  teamItemText: { fontSize: 16, textAlign: "center" },
+  closeButton: { marginTop: 15, alignItems: "center" },
+  closeText: { color: Colors.primary, fontWeight: "600", fontSize: 16 },
 });
 
 export default TournamentScreen;

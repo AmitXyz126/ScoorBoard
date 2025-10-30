@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   },
   backButton: { position: "absolute", top: 81, left: 20 },
   backArrow: { width: 24, height: 24 },
-  title: { fontSize: 20, fontWeight: "700", marginBottom: 40 },
+  title: { fontSize: 20, fontWeight: "700", marginBottom: 16 },
   imageUpload: {
     width: 100,
     height: 100,

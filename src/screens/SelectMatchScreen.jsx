@@ -4,7 +4,6 @@ import Colors from "../contants/Colors";
 import backIcon from "../../assets/backIcon.png";
 
 const SelectMatchScreen = ({ navigation }) => {
- 
   const [selectedType, setSelectedType] = useState("single");
 
   const handleNext = () => {
@@ -34,9 +33,12 @@ const SelectMatchScreen = ({ navigation }) => {
         <View style={styles.progressActive} />
         <View style={styles.progressActive} />
       </View>
-
-      <Text style={styles.heading}>Select</Text>
-
+      <View style={styles.con}>
+        <Text style={styles.heading}>Select</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("MatchHistory")}>
+          <Text style={styles.history}>Match History</Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.optionsContainer}>
         <TouchableOpacity
           style={[
@@ -106,6 +108,18 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 16,
   },
+  con: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  history: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#068EFF",
+    // color: Colors.text,
+    textAlign: "center",
+    marginBottom: 16,
+  },
   optionsContainer: {
     alignItems: "center",
   },
@@ -131,7 +145,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   footer: {
-    marginTop: 310,
+    marginTop: 290,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",

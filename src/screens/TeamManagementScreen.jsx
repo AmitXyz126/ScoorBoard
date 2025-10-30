@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
+import { useFocusEffect, useRoute } from "@react-navigation/native";  
 import Colors from "../contants/Colors";
 import editIcon from "../../assets/editIcon.png";
 import deleteIcon from "../../assets/deleteIcon.png";
@@ -22,27 +23,51 @@ const TeamManagementScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState(null);
+  const route = useRoute();
 
-  // Fetch teams from backend
+ 
   const fetchTeamsList = async () => {
     try {
       setLoading(true);
       const response = await getTeams();
-      setTeams(response || []);
+      const sortedTeams = (response || []).sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      setTeams(sortedTeams);
     } catch (error) {
       console.error("Error fetching teams:", error);
     } finally {
       setLoading(false);
     }
   };
+ 
+  useFocusEffect(
+    useCallback(() => {
+      fetchTeamsList();
+    }, [])
+  );
 
-  useEffect(() => {
-    fetchTeamsList();
-  }, []);
+ 
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params?.newTeam) {
+        // when new team added
+        setTeams((prev) => [
+          route.params.newTeam, // top
+          ...prev.filter((t) => t.id !== route.params.newTeam.id),
+        ]);
+      } else if (route.params?.updatedTeam) {
+        
+        setTeams((prev) => [
+          route.params.updatedTeam,  
+          ...prev.filter((t) => t.id !== route.params.updatedTeam.id),
+        ]);
+      }
+    }, [route.params])
+  );
 
   const confirmDelete = async () => {
     if (!selectedTeam?.id) return;
-
     try {
       await deleteTeam(selectedTeam.id);
       setTeams((prev) => prev.filter((t) => t.id !== selectedTeam.id));
@@ -80,10 +105,9 @@ const TeamManagementScreen = ({ navigation }) => {
         <View style={styles.actionIcons}>
           <TouchableOpacity
             style={styles.iconButton}
-            onPress={() => {
-              navigation.navigate("EditTeamScreen", { teamId: item.id });
-              console.log(item.id, "itemID");
-            }}
+            onPress={() =>
+              navigation.navigate("EditTeamScreen", { teamId: item.id })
+            }
           >
             <Image source={editIcon} style={{ width: 20, height: 20 }} />
           </TouchableOpacity>
@@ -202,11 +226,8 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: "#212121",
-    fontFamily: "Kumbh Sans",
     fontSize: 24,
-    fontStyle: "normal",
     fontWeight: "700",
-    lineHeight: 33.6,
   },
   profileImage: {
     width: 32,

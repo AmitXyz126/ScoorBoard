@@ -15,5 +15,7 @@ export const ENDPOINTS = {
   END_MATCH: (matchId) => `${BASE_URL}/api/matches/${matchId}/end`,
     //  Get Match by Code
   GET_MATCH_BY_CODE: (code) => `${BASE_URL}/api/matches/code/${code}`,
+  //  Get Completed Matches
+GET_COMPLETED_MATCHES: `${BASE_URL}/api/matches/completed`,
 
 };

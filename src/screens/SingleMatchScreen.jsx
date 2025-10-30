@@ -13,7 +13,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "../contants/Colors";
 import GradientButton from "../gradientButton/GradientButton";
-import GradientText from "../gradientText/GradientText";
+import GradientText from "../gradientText/GradientText";  
 import backIcon from "../../assets/backIcon.png";
 import downArrow from "../../assets/downArrow.png";
 import plusIcon from "../../assets/plus.png";
@@ -29,21 +29,21 @@ const SingleMatchScreen = ({ navigation }) => {
   const [visibleModal, setVisibleModal] = useState(null);
   const [starting, setStarting] = useState(false);
 
-  //  Fetch teams
+  // Fetch teams
   const fetchTeams = async () => {
     try {
       setLoading(true);
       const response = await getTeams();
       setTeamsList(response || []);
     } catch (error) {
-      console.error(" Error fetching teams:", error);
+      console.error("Error fetching teams:", error);
       Alert.alert("Error", "Failed to fetch teams. Try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  //  Fetch teams on screen focus
+  // Fetch teams on screen focus
   useFocusEffect(
     useCallback(() => {
       fetchTeams();
@@ -56,7 +56,7 @@ const SingleMatchScreen = ({ navigation }) => {
     setVisibleModal(null);
   };
 
-  //  Logo URL builder
+  // Logo URL builder
   const getTeamLogo = (team) => {
     if (!team?.logo) return null;
     const base = process.env.EXPO_PUBLIC_API_URL;
@@ -90,18 +90,18 @@ const SingleMatchScreen = ({ navigation }) => {
       const matchData = {
         teamA: teamA.id,
         teamB: teamB.id,
+        type:"single",
       };
 
       console.log("Match Data Sent:", matchData);
       const response = await createMatch(matchData, userToken);
-      console.log(" Match Created:", response);
+      console.log("Match Created:", response);
 
       Alert.alert("Success", "Match started successfully!");
       navigation.navigate("HomeEditScore", { teamA, teamB, match: response });
-      
     } catch (error) {
       console.error(
-        " Start Match Error:",
+        "Start Match Error:",
         error.response?.data || error.message
       );
       Alert.alert(
@@ -125,7 +125,7 @@ const SingleMatchScreen = ({ navigation }) => {
 
       <Text style={styles.title}>Start Match</Text>
 
-      {/*  Team A */}
+      {/* Team A */}
       <View style={styles.teamBox}>
         <View style={styles.teamInfo}>
           <Image
@@ -142,18 +142,22 @@ const SingleMatchScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <GradientText
-        text="Vs"
-        style={{
-          fontSize: 36,
-          fontWeight: "700",
-          fontFamily: "Kumbh Sans",
-          lineHeight: 40,
-          textTransform: "capitalize",
-        }}
-      />
+      {/*  GradientText works on iOS + Android + Web */}
+      <View style={styles.vsWrapper}>
+        <GradientText 
+          text="Vs"
+          style={{
+            fontSize: 36,
+            fontWeight: "700",
+            fontFamily: "Kumbh Sans",
+            lineHeight: 40,
+            textTransform: "capitalize",
+            textAlign: "center",
+          }}
+        />
+      </View>
 
-      {/* team B */}
+      {/* Team B */}
       <View style={styles.teamBox}>
         <View style={styles.teamInfo}>
           <Image
@@ -176,7 +180,7 @@ const SingleMatchScreen = ({ navigation }) => {
         <Text style={styles.manage}>Manage your Teams</Text>
       </TouchableOpacity>
 
-      {/*   Footer Buttons */}
+      {/* Footer Buttons */}
       <View style={styles.footerButtons}>
         <GradientButton
           title={starting ? "Starting..." : "Start Match"}
@@ -196,7 +200,7 @@ const SingleMatchScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* 🧾 Modal for Teams */}
+      {/* Modal for Teams */}
       <Modal transparent visible={!!visibleModal} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -258,10 +262,10 @@ const styles = StyleSheet.create({
     paddingTop: 80,
     padding: 20,
   },
-  manage: { fontSize: 16, color: "#068EFF", fontWeight: "700", marginTop: 20 },
+  manage: { fontSize: 16, color: "#068EFF", fontWeight: "700", marginTop: 10 },
   backButton: { position: "absolute", top: 60, left: 20 },
   backIcon: { width: 24, height: 24 },
-  title: { fontSize: 22, fontWeight: "700", marginBottom: 40, marginTop: 24 },
+  title: { fontSize: 22, fontWeight: "700", marginBottom: 16, marginTop: 20 },
   teamBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -293,6 +297,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     width: "90%",
     marginTop: 288,
+  },
+  vsWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 8,
   },
   modalOverlay: {
     flex: 1,

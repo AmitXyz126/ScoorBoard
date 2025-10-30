@@ -370,7 +370,15 @@ const styles = StyleSheet.create({
     elevation: 3,
     marginTop: 15,
   },
-  scoreButton: { padding: 8 },
+  // scoreButton: { padding: 8 },
+  scoreButton: {
+  padding: 8,
+  shadowColor: 'rgba(0,0,0,0.12)',
+  shadowOffset: { width: 0, height: 0 },
+  shadowOpacity: 1,
+  shadowRadius: 16,
+  elevation: 4, 
+},
   scoreText: { fontSize: 17, fontWeight: "400", color: "#414141" },
   footer: { width: "85%", marginTop: 30 },
   bottomModal: {

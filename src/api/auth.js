@@ -161,7 +161,6 @@ export const updateScore = async (matchId, data, token) => {
   }
 };
 
-
 // End Match API
 export const endMatch = async (matchId, token) => {
   try {
@@ -208,3 +207,25 @@ export const getMatchByCode = async (code, token) => {
   }
 };
 
+//  Get Completed Matches API
+export const getCompletedMatches = async (token) => {
+  try {
+    const response = await axios.get(ENDPOINTS.GET_COMPLETED_MATCHES, {
+      headers: {
+        Authorization: `Bearer ${token}`,  
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log(" Completed Matches:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error(
+      " Get Completed Matches API Error:",
+      error.response?.data || error.message
+    );
+    throw (
+      error.response?.data || { message: "Failed to fetch completed matches" }
+    );
+  }
+};  

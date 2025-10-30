@@ -21,7 +21,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const EditTeamScreen = ({ navigation, route }) => {
   const { teamId, team } = route.params;
-  console.log("Route",route)
+  console.log("Route", route);
 
   const [teamName, setTeamName] = useState(team?.name || "");
   const [country, setCountry] = useState(team?.country || "");
@@ -138,7 +138,6 @@ const EditTeamScreen = ({ navigation, route }) => {
         console.log("⚡ Logo not changed — skipping upload.");
       }
 
- 
       const updateData = {
         name: teamName,
         country,
@@ -177,7 +176,6 @@ const EditTeamScreen = ({ navigation, route }) => {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-        
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -238,7 +236,14 @@ const styles = StyleSheet.create({
   },
   backButton: { position: "absolute", top: 60, left: 20 },
   backArrow: { width: 24, height: 24 },
-  title: { fontSize: 20, fontWeight: "700", marginBottom: 40,  position: "absolute", top: 60, left:152 },
+  title: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 40,
+    position: "absolute",
+    top: 60,
+    left: 152,
+  },
   imageUpload: {
     width: 100,
     height: 100,
@@ -247,14 +252,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 30,
-    marginTop:40,
+    marginTop: 40,
     position: "relative",
     // overflow: "hidden",
   },
   imageIcon: {
     position: "absolute",
     bottom: 8,
-    right:1,
+    right: 1,
     backgroundColor: Colors.primary,
     borderRadius: 15,
     padding: 4,
