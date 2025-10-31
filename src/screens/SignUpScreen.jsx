@@ -79,6 +79,7 @@ const SignUpScreen = ({ navigation }) => {
               label="Full Name"
               value={value}
               onChangeText={onChange}
+              keyboardType="fullName"
             />
           )}
         />

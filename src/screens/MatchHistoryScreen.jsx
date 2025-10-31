@@ -6,7 +6,7 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
-  Animated,
+  FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -18,98 +18,118 @@ const BASE_URL = "https://scoreboard.xyzdemowebsites.com";
 const MatchHistoryScreen = ({ navigation }) => {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(false);
-  const scrollY = new Animated.Value(0);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Fetch completed matches
-  useEffect(() => {
-    const fetchCompletedMatches = async () => {
-      try {
-        setLoading(true);
-        const token = await AsyncStorage.getItem("userToken");
-        const data = await getCompletedMatches(token);
-        console.log("✅ Completed Matches Data:", data);
-        setMatches(data || []);
-      } catch (error) {
-        console.error("❌ Failed to fetch completed matches:", error);
-      } finally {
-        setLoading(false);
+  const fetchCompletedMatches = async () => {
+    try {
+      setLoading(true);
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        console.warn("No token found in AsyncStorage");
+        return;
       }
-    };
+      const data = await getCompletedMatches(token);
+      setMatches(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Failed to fetch completed matches:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchCompletedMatches();
   }, []);
 
-  // Render each match card
-  const renderItem = ({ item, index }) => {
-    const translateY = scrollY.interpolate({
-      inputRange: [-1, 0, 100 * index, 100 * (index + 2)],
-      outputRange: [0, 0, 0, -20],
-    });
+  const handleRefresh = async () => {
+    try {
+      setRefreshing(true);
+      await fetchCompletedMatches();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
-    const opacity = scrollY.interpolate({
-      inputRange: [-1, 0, 100 * index, 100 * (index + 0.5)],
-      outputRange: [1, 1, 1, 0],
-    });
+  const renderItem = ({ item }) => {
+    const teamAData = Array.isArray(item.teamA)
+      ? item.teamA.reduce((acc, cur) => ({ ...acc, ...cur }), {})
+      : item.teamA || {};
 
-    const teamALogo = item.teamA?.logo?.url
-      ? { uri: `${BASE_URL}${item.teamA.logo.url}` }
+    const teamBData = Array.isArray(item.teamB)
+      ? item.teamB.reduce((acc, cur) => ({ ...acc, ...cur }), {})
+      : item.teamB || {};
+
+    const teamAName = teamAData.name || "Team A";
+    const teamBName = teamBData.name || "Team B";
+
+    const teamALogo = teamAData.logo?.url
+      ? { uri: `${BASE_URL}${teamAData.logo.url}` }
       : require("../../assets/person.png");
 
-    const teamBLogo = item.teamB?.logo?.url
-      ? { uri: `${BASE_URL}${item.teamB.logo.url}` }
+    const teamBLogo = teamBData.logo?.url
+      ? { uri: `${BASE_URL}${teamBData.logo.url}` }
       : require("../../assets/person.png");
 
-    const winnerName =
-      item?.winner?.name ||
-      item?.winner?.team_name ||
-      (typeof item.winner === "string" ? item.winner : "N/A");
+    const teamAScore =
+      teamAData.scoreA ??
+      teamAData.score ??
+      item.scoreA ??
+      item.teamA_score ??
+      0;
+    const teamBScore =
+      teamBData.scoreB ??
+      teamBData.score ??
+      item.scoreB ??
+      item.teamB_score ??
+      0;
+
+    const matchType =
+      item.match_type || item.type || item.category || "Friendly Match";
+ 
+    const unit = "goals";
+
+    //  Winner logic
+    let winnerText = "";
+    if (teamAScore === teamBScore) {
+      winnerText = "🤝 Match Drawn";
+    } else if (teamAScore > teamBScore) {
+      const margin = teamAScore - teamBScore;
+      winnerText = `🏆 Won ${teamAName} by ${margin} ${unit}`;
+    } else {
+      const margin = teamBScore - teamAScore;
+      winnerText = `🏆 Won ${teamBName} by ${margin} ${unit}`;
+    }
 
     return (
-      <Animated.View
-        style={[
-          styles.card,
-          {
-            opacity,
-            transform: [{ translateY }],
-          },
-        ]}
-      >
-        {/* Match ID Row */}
+      <View style={styles.card}>
+        {/* Match Type */}
         <View style={styles.matchRow}>
-          <Text style={styles.matchIdLabel}>Match ID </Text>
-          <Text style={styles.matchIdValue}>{item.match_code}</Text>
+          <Text style={styles.matchIdLabel}>Match Type:</Text>
+          <Text style={styles.matchIdValue}>{matchType}</Text>
         </View>
 
-        {/* Team vs Team Row */}
+        {/* Teams */}
         <View style={styles.row}>
-          {/* Team A */}
           <View style={styles.teamContainer}>
             <Image source={teamALogo} style={styles.teamLogo} />
             <Text style={styles.teamName}>
-              {item.teamA?.name || "Team A"} ({item.teamA?.score ?? 0})
+              {teamAName} ({teamAScore})
             </Text>
-            <Text style={styles.teamSub}>Team A</Text>
           </View>
 
-          {/* VS Text */}
           <Text style={styles.vs}>VS</Text>
 
-          {/* Team B */}
           <View style={styles.teamContainer}>
             <Image source={teamBLogo} style={styles.teamLogo} />
             <Text style={styles.teamName}>
-              {item.teamB?.name || "Team B"} ({item.teamB?.score ?? 0})
+              {teamBName} ({teamBScore})
             </Text>
-            <Text style={styles.teamSub}>Team B</Text>
           </View>
         </View>
 
-        {/* Winner Text */}
-        <Text style={styles.winnerText}>
-          🏆 Won {winnerName} by{" "}
-          {item.winBy ? item.winBy.toString().padStart(2, "0") : "00"}
-        </Text>
-      </Animated.View>
+        {/* Winner */}
+        <Text style={styles.winnerText}>{winnerText}</Text>
+      </View>
     );
   };
 
@@ -124,26 +144,22 @@ const MatchHistoryScreen = ({ navigation }) => {
         <View style={{ width: 26 }} />
       </View>
 
-      {/* Title */}
       <View style={styles.topRow}>
         <Text style={styles.recentText}>Completed Matches</Text>
       </View>
 
-      {/* Loader or List */}
       {loading ? (
         <ActivityIndicator size="large" color={Colors.primary} />
       ) : (
-        <Animated.FlatList
+        <FlatList
           data={matches}
           keyExtractor={(item, index) =>
             item?.id?.toString() || index.toString()
           }
           renderItem={renderItem}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
           showsVerticalScrollIndicator={false}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true }
-          )}
           contentContainerStyle={{ paddingBottom: 40 }}
         />
       )}
@@ -160,7 +176,6 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingHorizontal: 15,
   },
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -172,7 +187,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#000",
   },
-
   topRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -183,20 +197,14 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#212121",
   },
-
-  // Match Card
   card: {
-    backgroundColor: "#F8F8F8",
+    backgroundColor: "#F5F5F5",
     borderRadius: 16,
     paddingVertical: 20,
     paddingHorizontal: 16,
     marginBottom: 14,
     shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
   },
-
   matchRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -212,9 +220,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#212121",
     marginLeft: 4,
-    opacity: 0.5,
+    opacity: 0.6,
   },
-
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -237,20 +244,17 @@ const styles = StyleSheet.create({
     color: "#000",
     textAlign: "center",
   },
-  teamSub: {
-    fontSize: 12,
-    color: "#777",
-  },
   vs: {
     fontSize: 18,
     fontWeight: "700",
-    color: Colors.primary,
+    color: "#212121",
+    opacity: 0.5,
   },
   winnerText: {
     marginTop: 10,
     textAlign: "center",
     fontSize: 14,
-    color: "#007AFF",
+    color: "#068EFF",
     fontWeight: "600",
   },
 });

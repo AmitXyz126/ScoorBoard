@@ -136,9 +136,7 @@ const HomeEditScore = ({ navigation, route }) => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.navigate("ViewLogin")}>
-          <Image source={sidelogo} style={styles.logo} />
-        </TouchableOpacity>
+        <Image source={sidelogo} style={styles.logo} />
         <Image source={person} style={styles.personIcon} />
       </View>
 
@@ -372,13 +370,13 @@ const styles = StyleSheet.create({
   },
   // scoreButton: { padding: 8 },
   scoreButton: {
-  padding: 8,
-  shadowColor: 'rgba(0,0,0,0.12)',
-  shadowOffset: { width: 0, height: 0 },
-  shadowOpacity: 1,
-  shadowRadius: 16,
-  elevation: 4, 
-},
+    padding: 8,
+    shadowColor: "rgba(0,0,0,0.12)",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 16,
+    elevation: 4,
+  },
   scoreText: { fontSize: 17, fontWeight: "400", color: "#414141" },
   footer: { width: "85%", marginTop: 30 },
   bottomModal: {

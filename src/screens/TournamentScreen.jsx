@@ -89,7 +89,7 @@ const TournamentScreen = ({ navigation }) => {
       const matchData = {
         teamA: teamA.id,
         teamB: teamB.id,
-       type: "tournament" ,  
+       type: "Tournament" ,  
       };
 
       console.log("Match Data Sent:", matchData);

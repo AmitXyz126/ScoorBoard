@@ -13,7 +13,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "../contants/Colors";
 import GradientButton from "../gradientButton/GradientButton";
-import GradientText from "../gradientText/GradientText";  
+import GradientText from "../gradientText/GradientText";
 import backIcon from "../../assets/backIcon.png";
 import downArrow from "../../assets/downArrow.png";
 import plusIcon from "../../assets/plus.png";
@@ -90,7 +90,7 @@ const SingleMatchScreen = ({ navigation }) => {
       const matchData = {
         teamA: teamA.id,
         teamB: teamB.id,
-        type:"single",
+        type: "single",
       };
 
       console.log("Match Data Sent:", matchData);
@@ -142,19 +142,20 @@ const SingleMatchScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/*  GradientText works on iOS + Android + Web */}
       <View style={styles.vsWrapper}>
-        <GradientText 
-          text="Vs"
-          style={{
-            fontSize: 36,
-            fontWeight: "700",
-            fontFamily: "Kumbh Sans",
-            lineHeight: 40,
-            textTransform: "capitalize",
-            textAlign: "center",
-          }}
-        />
+        <TouchableOpacity onPress={() => navigation.navigate("ViewLogin")}>
+          <GradientText
+            text="Vs"
+            style={{
+              fontSize: 36,
+              fontWeight: "700",
+              fontFamily: "Kumbh Sans",
+              lineHeight: 40,
+              textTransform: "capitalize",
+              textAlign: "center",
+            }}
+          />
+        </TouchableOpacity>
       </View>
 
       {/* Team B */}
@@ -295,7 +296,7 @@ const styles = StyleSheet.create({
   footerButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: "90%",
+    width: "95%",
     marginTop: 288,
   },
   vsWrapper: {
